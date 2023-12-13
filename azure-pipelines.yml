@@ -1,33 +1,18 @@
-# Python to Linux Web App on Azure
-# Build your Python project and deploy it to Azure as a Linux Web App.
-# Change python version to one thats appropriate for your application.
-# https://docs.microsoft.com/azure/devops/pipelines/languages/python
-
 trigger:
 - develop
 
 variables:
-  # Azure Resource Manager connection created during pipeline creation
-  azureServiceConnectionId: 'c45d0465-0b1d-4724-918b-253749b157d9'
-
-  # Web app name
+  azureServiceConnectionId: 'c429efe5-c1ff-448e-b57a-87c25af9b5d9'
   webAppName: 'gsm-fastapi'
-
-  # Agent VM image name
   vmImageName: 'ubuntu-latest'
-
-  # Environment name
   environmentName: 'gsm-fastapi'
-
-  # Project root folder. Point to the folder containing manage.py file.
   projectRoot: $(System.DefaultWorkingDirectory)
-
-  # Python version: 3.12
   pythonVersion: '3.12'
+  isDev: $[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]
 
 stages:
 - stage: Build
-  displayName: Build stage
+  displayName: Build Stage
   jobs:
   - job: BuildJob
     pool:
@@ -63,7 +48,7 @@ stages:
 - stage: Deploy
   displayName: 'Deploy Web App'
   dependsOn: Build
-  condition: succeeded()
+  condition: and(succeeded(), eq(variables.isDev, true))
   jobs:
   - deployment: DeploymentJob
     pool:
@@ -78,10 +63,32 @@ stages:
             inputs:
               versionSpec: '$(pythonVersion)'
             displayName: 'Use Python version'
+          
+          - task: AzureAppServiceSettings@1
+            inputs:
+              azureSubscription: 'AlongX Software (8d563681-95d3-40e5-8e42-b7afaeb4e558)'
+              appName: $(webAppName)
+              resourceGroupName: 'Development'
+              appSettings: |
+                [
+                  {
+                    "name": "ENABLE_ORYX_BUILD",
+                    "value": 1
+                  },
+                  {
+                    "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+                    "value": 1
+                  },
+                  {
+                    "name": "POST_BUILD_COMMAND",
+                    "value": "pip install -r ./requirements.txt"
+                  }
+                ]
 
           - task: AzureWebApp@1
             displayName: 'Deploy Azure Web App : gsm-fastapi'
             inputs:
-              azureSubscription: $(azureServiceConnectionId)
-              appName: $(webAppName)
-              package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
+              azureSubscription: '$(azureServiceConnectionId)'
+              appType: 'webAppLinux'
+              appName: '$(webAppName)'
+              package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
