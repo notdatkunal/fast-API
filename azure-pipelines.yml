@@ -4,7 +4,7 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
 trigger:
-- master
+- none
 
 variables:
   # Azure Resource Manager connection created during pipeline creation
@@ -25,7 +25,7 @@ variables:
   # Python version: 3.12
   pythonVersion: '3.12'
 
-  isDev: $[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]
+  isDev: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
 
 stages:
 - stage: Build
