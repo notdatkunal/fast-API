@@ -2,7 +2,7 @@ trigger:
 - develop
 
 variables:
-  azureServiceConnectionId: 'c429efe5-c1ff-448e-b57a-87c25af9b5d9'
+  azureServiceConnection: 'AlongX-Azure-Account-Development'
   webAppName: 'gsm-fastapi'
   resourceGroupName: 'Development'
   vmImageName: 'ubuntu-latest'
@@ -67,7 +67,7 @@ stages:
           
           - task: AzureAppServiceSettings@1
             inputs:
-              azureSubscription: '$(azureServiceConnectionId)'
+              azureSubscription: '$(azureServiceConnection)'
               appName: $(webAppName)
               resourceGroupName: '$(resourceGroupName)'
               appSettings: |
@@ -87,9 +87,9 @@ stages:
                 ]
 
           - task: AzureWebApp@1
-            displayName: 'Deploy Azure Web App : gsm-fastapi'
+            displayName: 'Deploy Azure Web App : $(webAppName)'
             inputs:
-              azureSubscription: '$(azureServiceConnectionId)'
+              azureSubscription: '$(azureServiceConnection)'
               appType: 'webAppLinux'
               appName: '$(webAppName)'
               package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
