@@ -6,6 +6,7 @@ pool:
 
 variables:
   pythonVersion: '3.12'
+  projectRoot: ''
   appName: 'gsm-fastapi'
 
 steps:
@@ -13,8 +14,14 @@ steps:
   displayName: 'Use Python $(pythonVersion)'
   inputs:
     versionSpec: '$(pythonVersion)'
-    addToPath: true
-    architecture: 'x64'
+- script: |
+         python -m venv antenv
+         source antenv/bin/activate
+         python -m pip install --upgrade pip
+         pip install setup
+         pip install -r requirements.txt
+  workingDirectory: $(projectRoot)
+  displayName: "Install requirements"
 
 - task: ArchiveFiles@2
   displayName: 'Zip Code'
