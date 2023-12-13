@@ -25,9 +25,12 @@ variables:
   # Python version: 3.12
   pythonVersion: '3.12'
 
+  deploymentBranch: 'development'
+
 stages:
 - stage: Build
-  displayName: Build stage
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+  displayName: Build Stage
   jobs:
   - job: BuildJob
     pool:
