@@ -4,6 +4,7 @@ trigger:
 variables:
   azureServiceConnectionId: 'c429efe5-c1ff-448e-b57a-87c25af9b5d9'
   webAppName: 'gsm-fastapi'
+  resourceGroupName: 'Develop'
   vmImageName: 'ubuntu-latest'
   environmentName: 'gsm-fastapi'
   projectRoot: $(System.DefaultWorkingDirectory)
@@ -46,7 +47,7 @@ stages:
       artifact: drop
 
 - stage: Deploy
-  displayName: 'Deploy Web App'
+  displayName: 'Deploy to Develop Environment'
   dependsOn: Build
   condition: and(succeeded(), eq(variables.isDev, true))
   jobs:
@@ -66,9 +67,9 @@ stages:
           
           - task: AzureAppServiceSettings@1
             inputs:
-              azureSubscription: 'AlongX Software (8d563681-95d3-40e5-8e42-b7afaeb4e558)'
+              azureSubscription: '$(azureServiceConnectionId)'
               appName: $(webAppName)
-              resourceGroupName: 'Development'
+              resourceGroupName: '$(resourceGroupName)'
               appSettings: |
                 [
                   {
