@@ -73,7 +73,24 @@ stages:
           - task: UsePythonVersion@0
             inputs:
               versionSpec: '$(pythonVersion)'
-            displayName: 'Use Python version'
+              azureSubscription: $(azureServiceConnectionId)
+              appName: $(webAppName)
+              displayName: 'Set App Settings'
+              appSettings: |
+                  [
+                    {
+                      "name": "ENABLE_ORYX_BUILD",
+                      "value": 1
+                    },
+                    {
+                      "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+                      "value": 1
+                    },
+                    {
+                      "name": "POST_BUILD_COMMAND",
+                      "value": "pip install -r ./requirements.txt"
+                    }
+                  ]
 
           - task: AzureWebApp@1
             displayName: 'Deploy Azure Web App : gsm-fastapi'
