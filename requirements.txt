@@ -1,5 +1,4 @@
 # MySQL-related requirements
-libmysqlclient-dev
 mysqlclient==2.0.3  # or the version you prefer
 mysql-connector-python==8.0.28  # or the version you prefer
 
