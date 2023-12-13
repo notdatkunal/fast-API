@@ -15,4 +15,8 @@ class Stops(BASE):
     __tablename__ = "Tbl_Stops"
     stop_id = Column(Integer,primary_key=True,autoincrement=True)
     transport_id = Column(Integer,ForeignKey("Tbl_Transport.transport_id",ondelete="CASCADE"))
-    stop_name = Column(String(20))
+    stop_name = Column(String(20)) 
+
+class TransportRoute(BASE):
+    __tablename__ = "Tbl_Transport_Route"
+    id = Column(Integer,primary_key=True,autoincrement=True)

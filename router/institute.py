@@ -1,16 +1,10 @@
 import sys
 sys.path.append("..")
-from typing import Optional
-from fastapi import APIRouter,Depends,HTTPException
-from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel,Field,ValidationError
+# basic 
+from .basic_import import *
+# models
 from models import *
-from .database_connnection import get_db
-from database import engine
-institute.BASE.metadata.create_all(bind = engine)
-from sqlalchemy.orm import Session
 router = APIRouter()
-
 
 class InstituteSchema(BaseModel):
     name :str = Field(max_length=20)

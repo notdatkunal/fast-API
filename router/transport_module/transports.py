@@ -1,14 +1,12 @@
 from datetime import date
 import sys
 sys.path.append("..")
-# basic 
-from .basic_import import *
-# models
-from models import *
-transports.BASE.metadata.create_all(bind = engine)
-tbl_transports = transports.Transport
-Tbl_Stops=transports.Stops
+from router.basic_import import *
+from models.transports import Transport
+from router.utility import succes_response
+
 router = APIRouter()
+tbl_transports = Transport
 # base schema
 class TransportBase(BaseModel):
     institute_id:int
@@ -16,10 +14,6 @@ class TransportBase(BaseModel):
     vehicle_number : str = Field(min_length=3)
     vehicle_details : Optional[str]
     register_date : date = Field(default_factory=date.today)
-
-class StopsBase(BaseModel):
-    stop_name : str = Field(min_length=3)
-    transport_id : int
 
 # post  api  for transport
 @router.post("/create_transport/")
@@ -46,7 +40,7 @@ async def get_all_transports(db:Session = Depends(get_db)):
 
 
 # update api code for  transpotation 
-@router.put("/{transport_id}")
+@router.put("/update_transport/")
 async def update_transport(transport_id: int, transport: TransportBase, db: Session = Depends(get_db)):
     # Use .first() to execute the query and retrieve the first result
     transpotation_data = db.query(tbl_transports).filter(tbl_transports.transport_id == transport_id).first()
@@ -59,7 +53,7 @@ async def update_transport(transport_id: int, transport: TransportBase, db: Sess
     else:
         raise HTTPException(status_code=404, detail="transport not found")
     
-@router.get("/transport_id")
+@router.get("/get_transport_data_by_id/")
 async def get_transport_data_by_id(transport_id:int,db:Session = Depends(get_db)):
     transport_details = db.query(tbl_transports).filter(tbl_transports.transport_id == transport_id).first()
     if transport_details is not None:
@@ -68,10 +62,8 @@ async def get_transport_data_by_id(transport_id:int,db:Session = Depends(get_db)
         raise HTTPException(status_code=404, detail="transpotation  not found")
 
 
-
-
 # delete api code for  transpotation
-@router.delete("/{transport_id}")
+@router.delete("/delete_transport/")
 async def delete_transport(transport_id:int,db:Session = Depends(get_db)):
     transport_data = db.query(tbl_transports).filter(tbl_transports.transport_id == transport_id).first()
     if transport_data is not None:
@@ -81,6 +73,3 @@ async def delete_transport(transport_id:int,db:Session = Depends(get_db)):
         return {"status":"200","msg":"done",'response':{"transport_id":transport_id}}
     else:
         raise HTTPException(status_code=404, detail="transport not found")
-
-
-

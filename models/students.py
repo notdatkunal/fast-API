@@ -22,3 +22,19 @@ class Student(BASE):
     section_id = Column(Integer,ForeignKey("Tbl_Sections.section_id",ondelete="CASCADE"),nullable=True)
     transport_id = Column(Integer,ForeignKey("Tbl_Transport.transport_id",ondelete="CASCADE"),nullable=True)
 
+class Parents(BASE):
+    __tablename__ = "parents"
+    parent_id = Column(Integer, primary_key=True, autoincrement=True)
+    parent_name = Column(String(30))
+    parent_email = Column(String(30))
+    parent_phone = Column(String(10))
+    parent_profile = Column(String(10), nullable=True)
+    parent_gender = Column(String(10), nullable=True)
+    parent_age = Column(String(100),nullable=True)
+    relation_with_student = Column(String(10))
+    parent_address = Column(String(50),nullable=True)
+    parent_profession = Column(String(20),nullable=True)
+    photo = Column(String(255),nullable=True)
+
+    # Foreign Keys
+    student_id = Column(Integer,ForeignKey("students.student_id",ondelete="CASCADE"),nullable=True)
