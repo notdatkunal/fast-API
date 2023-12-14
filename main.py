@@ -21,11 +21,6 @@ app.add_middleware(
    allow_headers=["*"],
 )
 app.include_router(
-   accounts.router,
-   prefix="/Accounts",
-   tags=["Accounts"],
-)
-app.include_router(
    institute.router,
    prefix="/Institute",
    tags=['Institute'],

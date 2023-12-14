@@ -30,7 +30,8 @@ class StudentBase(BaseModel):
 # geting all student according to institute id
 @router.get("/get_students_by_intitute/")
 async def get_all_students( institute_id:int,db:Session = Depends(get_db)):
-    students = ModelManager.get_student_data_by_institute(db.query(Student),institute_id).all()
+    student_model = Student
+    students = ModelManager.get_data_by_institute(db.query(student_model),student_model,institute_id)
     return jsonable_encoder(students)
 
 @router.get("/get_students_by_field/{field_name}/{field_value}/")
