@@ -6,7 +6,12 @@ from router import accounts,institute
 from router.classes_module import sections,subjects,classes
 from router.student_module import student,parents
 from router.transport_module import stops,transports
-app =FastAPI()
+from router.staffs_module import staff,staff_payrole
+app = FastAPI(
+   title="GSM API",
+   description="GURUKUL A School Management System",
+   version="1.0.0",
+)
 #CORS Middleware
 app.add_middleware(
    CORSMiddleware,
@@ -15,11 +20,11 @@ app.add_middleware(
    allow_methods=["*"],
    allow_headers=["*"],
 )
-# app.include_router(
-#    accounts.router,
-#    prefix="/Accounts",
-#    tags=["Accounts"],
-# )
+app.include_router(
+   accounts.router,
+   prefix="/Accounts",
+   tags=["Accounts"],
+)
 app.include_router(
    institute.router,
    prefix="/Institute",
@@ -54,6 +59,7 @@ app.include_router(
    tags=['Subjects'],
 )
 # -----------------------------CLASS,SECTIONS AND SUBJECTS END------------------------------------------
+# -----------------------------TRANSPORTS START------------------------------------------
 app.include_router(
    transports.router,
    prefix="/Transport",
@@ -64,7 +70,20 @@ app.include_router(
    prefix="/Stops",
    tags=['Stops'],
 )
-
+# -----------------------------TRANSPORTS END------------------------------------------
+# -----------------------------STAFF START---------------------------------------------
+app.include_router(
+   staff.router,
+   prefix="/StaffS",
+   tags=['StaffS'],
+)
+#  staff_payrole
+app.include_router(
+   staff_payrole.router,
+   prefix="/StaffPayrole",
+   tags=['StaffPayrole'],
+)
+# -----------------------------STAFF END---------------------------------------------
 
 
 

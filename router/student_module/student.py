@@ -3,6 +3,7 @@ import sys
 sys.path.append("..")
 from router.basic_import import *
 from models.students import Student
+from models.manager import ModelManager
 from router.utility import succes_response
 
 router = APIRouter()
@@ -26,11 +27,19 @@ class StudentBase(BaseModel):
     section_id :int
     transport_id :Optional[int]
 
-@router.get("/get_all_students/")
-async def get_all_students(db:Session = Depends(get_db)):
-    students = db.query(Student).all()
+# geting all student according to institute id
+@router.get("/get_students_by_intitute/")
+async def get_all_students( institute_id:int,db:Session = Depends(get_db)):
+    students = ModelManager.get_student_data_by_institute(db.query(Student),institute_id).all()
     return jsonable_encoder(students)
 
+@router.get("/get_students_by_field/{field_name}/{field_value}/")
+async def get_all_students_by_field(field_name:str,field_value:str,db:Session = Depends(get_db)):
+    student_model = Student
+    students = ModelManager.get_data_by_field(db.query(student_model),field_name,field_value,student_model)
+    return jsonable_encoder(students)
+
+# creating student data
 @router.post("/create_student/")
 async def create_student(student:StudentBase,db:Session = Depends(get_db)):
     try:
@@ -38,10 +47,11 @@ async def create_student(student:StudentBase,db:Session = Depends(get_db)):
         db.add(new_student)
         db.commit()
         db.refresh(new_student)
-        return {"statu":"200","msg":"done",'response':new_student}
+        return succes_response(new_student)
     except Exception as e:
         return HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
-    
+
+# updating student data
 @router.put("/update_student/{student_id}")
 async def update_student(student_id: int, student: StudentBase, db: Session = Depends(get_db)):
     # Use .first() to execute the query and retrieve the first result
@@ -51,20 +61,21 @@ async def update_student(student_id: int, student: StudentBase, db: Session = De
             setattr(student_data, key, value)
         db.commit()
         db.refresh(student_data)
-        return {"status":"200","msg":"done",'response':student_data}
+        return succes_response(student_data)
     else:
         raise HTTPException(status_code=404, detail="Student not found")
 
 
+# geting student data by id
 @router.get("/get_student/")
 async def get_student_data_by_id(student_id:int,db:Session = Depends(get_db)):
     student_data = db.query(Student).filter(Student.student_id == student_id).first()
     if student_data is not None:
-        return {"status":"200","msg":"done",'response':student_data}
+        return succes_response(student_data)
     else:
         raise HTTPException(status_code=404, detail="Student not found")
 
-
+# deleteing the students
 @router.delete("/delete_student/")
 async def delete_student(student_id:int,db:Session = Depends(get_db)):
     student_data = db.query(Student).filter(Student.student_id == student_id).first()
@@ -72,6 +83,6 @@ async def delete_student(student_id:int,db:Session = Depends(get_db)):
         student_id = student_data.student_id
         db.delete(student_data)
         db.commit()
-        return {"status":"200","msg":"done",'response':{"student_id":student_id}}
+        return {"status": "200", "msg": "done", 'response':student_id}
     else:
         raise HTTPException(status_code=404, detail="Student not found")

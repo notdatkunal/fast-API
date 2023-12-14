@@ -12,10 +12,11 @@ class ClassBase(BaseModel):
     is_deleted: bool = Field(default=False)
     institute_id:int
 
-@router.get("/get_all_classes/")
-async def get_all_classes(db:Session = Depends(get_db)):
-    classes_obj = db.query(Classes).filter(Classes.is_deleted == False).all()
+@router.get("/get_classes_by_institute/")
+async def get_all_classes(institite_id:int,db:Session = Depends(get_db)):
+    classes_obj =ModelManager.get_classes_by_institute(db.query(Classes),institite_id).all()
     return jsonable_encoder(classes_obj)
+
 
 @router.get("/class_id/")
 async def get_class_by_classId(class_id:int,db:Session = Depends(get_db)):
@@ -25,8 +26,18 @@ async def get_class_by_classId(class_id:int,db:Session = Depends(get_db)):
     else:
         raise HTTPException(status_code=404, detail="Class not found")
     
+
+@router.get("/get_classes_by_field/{field_name}/{field_value}/")
+async def get_all_classes_by_field(field_name:str,field_value:str,db:Session = Depends(get_db)):
+    class_model = Classes
+    classes_obj =ModelManager.get_data_by_field(db.query(class_model),field_name,field_value,class_model)
+    return jsonable_encoder(classes_obj)
+
+
 @router.post("/create_class/")
 async def create_class(class_data: ClassBase, db: Session = Depends(get_db)):
+    if db.query(Classes).filter(Classes.class_name == class_data.class_name and Classes.institute_id == class_data.institute_id).first():
+        raise HTTPException(status_code=400, detail="Class already registered")
     try:
         class_instance = Classes(**class_data.dict())
         db.add(class_instance)

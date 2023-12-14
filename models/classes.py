@@ -1,6 +1,5 @@
-from sqlalchemy import Column, Boolean, String, Date, Float, Integer, ForeignKey
-from sqlalchemy.orm import relationship
 from database import BASE
+from .base import *
 
 class Classes(BASE):
     __tablename__ = "Tbl_Classes"

@@ -1,6 +1,8 @@
 from database import BASE
 from .base import *
 
+
+
 class Student(BASE):
     __tablename__ = "students"
     institute_id = Column(Integer,ForeignKey("institute.id",ondelete="CASCADE"),nullable=True)
@@ -21,6 +23,7 @@ class Student(BASE):
     class_id = Column(Integer,ForeignKey("Tbl_Classes.class_id",ondelete="CASCADE"),nullable=True)
     section_id = Column(Integer,ForeignKey("Tbl_Sections.section_id",ondelete="CASCADE"),nullable=True)
     transport_id = Column(Integer,ForeignKey("Tbl_Transport.transport_id",ondelete="CASCADE"),nullable=True)
+
 
 class Parents(BASE):
     __tablename__ = "parents"
