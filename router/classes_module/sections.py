@@ -20,8 +20,8 @@ class SectionBase(BaseModel):
 async def create_section_for_class(
     section_data: SectionBase, db: Session = Depends(get_db)
 ):
-    if db.query(Sections).filter(Sections.class_id == section_data.class_id and Sections.section_name == section_data.section_name).first():
-        raise HTTPException(status_code=400, detail="Section already registered")
+    # if db.query(Sections).filter(Sections.class_id == section_data.class_id and Sections.section_name == section_data.section_name).first():
+    #     raise HTTPException(status_code=400, detail="Section already registered")
     try:
         section_instance = Sections(**section_data.dict())
         db.add(section_instance)

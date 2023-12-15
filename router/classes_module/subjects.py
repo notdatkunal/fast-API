@@ -19,15 +19,15 @@ class SubjectBase(BaseModel):
 async def create_subject_for_class(
     subject_data: SubjectBase, db: Session = Depends(get_db)
 ):
-    if (
-        db.query(Subjects)
-        .filter(
-            Subjects.class_id == subject_data.class_id
-            and Subjects.subject_name == subject_data.subject_name
-        )
-        .first()
-    ):
-        raise HTTPException(status_code=400, detail="Subject already registered")
+    # if (
+    #     db.query(Subjects)
+    #     .filter(
+    #         Subjects.class_id == subject_data.class_id
+    #         and Subjects.subject_name == subject_data.subject_name
+    #     )
+    #     .first()
+    # ):
+    #     raise HTTPException(status_code=400, detail="Subject already registered")
     try:
         subject_instance = Subjects(**subject_data.dict())
         db.add(subject_instance)

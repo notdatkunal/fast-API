@@ -20,6 +20,7 @@ class ModelManager(BaseQueryManager):
     def get_student_data_by_institute(query: ManagedQuery,model,institite_id: int) -> ManagedQuery:
         return query.filter(Student.institute_id == institite_id)
     # -------student model manager----------------
+
     
     # -------classes model manager----------------
     @staticmethod
@@ -36,3 +37,4 @@ class ModelManager(BaseQueryManager):
             return data
         except Exception as e:
             raise HTTPException(status_code=404, detail=str(e))
+        
