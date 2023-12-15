@@ -14,7 +14,7 @@ class ClassBase(BaseModel):
 
 @router.get("/get_classes_by_institute/")
 async def get_all_classes(institite_id:int,db:Session = Depends(get_db)):
-    classes_obj =ModelManager.get_classes_by_institute(db.query(Classes),institite_id).all()
+    classes_obj =ModelManager.get_classes_by_institute(db.query(Classes),institite_id).filter(Classes.is_deleted == False).all()
     return jsonable_encoder(classes_obj)
 
 
@@ -36,8 +36,6 @@ async def get_all_classes_by_field(field_name:str,field_value:str,db:Session = D
 
 @router.post("/create_class/")
 async def create_class(class_data: ClassBase, db: Session = Depends(get_db)):
-    if db.query(Classes).filter(Classes.class_name == class_data.class_name and Classes.institute_id == class_data.institute_id).first():
-        raise HTTPException(status_code=400, detail="Class already registered")
     try:
         class_instance = Classes(**class_data.dict())
         db.add(class_instance)
