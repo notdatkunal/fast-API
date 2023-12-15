@@ -17,7 +17,7 @@ class ModelManager(BaseQueryManager):
 
     # -------student model manager----------------
     @staticmethod
-    def get_student_data_by_institute(query: ManagedQuery,model,institite_id: int) -> ManagedQuery:
+    def get_student_data_by_institute(query: ManagedQuery,institite_id: int) -> ManagedQuery:
         return query.filter(Student.institute_id == institite_id)
     # -------student model manager----------------
 
