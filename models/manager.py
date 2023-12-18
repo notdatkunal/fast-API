@@ -14,14 +14,15 @@ class ModelManager(BaseQueryManager):
             return data
         except Exception as e:
             raise HTTPException(status_code=404, detail=str(e))
-
     # -------student model manager----------------
     @staticmethod
     def get_student_data_by_institute(query: ManagedQuery,institite_id: int) -> ManagedQuery:
-        return query.filter(Student.institute_id == institite_id)
+        try:
+            data = query.filter(Student.institute_id == institite_id).all()
+            return data
+        except Exception as e:
+            raise HTTPException(status_code=404, detail=str(e))
     # -------student model manager----------------
-
-    
     # -------classes model manager----------------
     @staticmethod
     def get_classes_by_institute(query: ManagedQuery, institite_id: int) -> ManagedQuery:
