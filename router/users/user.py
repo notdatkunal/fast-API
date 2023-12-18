@@ -4,14 +4,14 @@ sys.path.append("..")
 from router.basic_import import *
 from models.users import Users
 from router.utility import succes_response
-from pydantic import BaseModel, Field,EmailStr
+from pydantic import BaseModel
 
 router = APIRouter()
 # base models
 class UserBase(BaseModel):
     user_name: str = Field(min_length=3, max_length=30)
     user_password: str = Field(min_length=3, max_length=30)
-    user_email: EmailStr = Field(min_length=3, max_length=30)
+    user_email: str = Field(min_length=3, max_length=30)
     user_phone_number: str = Field(min_length=10, max_length=10)
     is_deleted: bool = False
     user_role: str = Field(min_length=3, max_length=30)
