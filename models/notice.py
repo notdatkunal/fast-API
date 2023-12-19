@@ -4,7 +4,7 @@ from .base import *
 class Notice(BASE):
     __tablename__ = 'Tbl_Notice'
     notice_id = Column(Integer, primary_key=True)
-    institution_id = Column(Integer, ForeignKey('institute.id', ondelete="CASCADE"))
+    institute_id = Column(Integer, ForeignKey('institute.id', ondelete="CASCADE"))
     notice_date = Column(Date)
     due_date = Column(Date)
     notice_title = Column(String(500))
