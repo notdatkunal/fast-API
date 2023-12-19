@@ -69,3 +69,17 @@ async def update_notice(notice_id:int,notice:NoticeBase,db:Session = Depends(get
     except Exception as e:
         return HTTPException(status_code=500, detail=f"Error While Updating: {str(e)}")
     
+# delete_notice
+@router.delete("/delete_notice/")
+async def delete_notice(notice_id:int,db:Session = Depends(get_db)):
+    try:
+        notice_data = db.query(Notice).filter(Notice.notice_id == notice_id).first()
+        if notice_data is not None:
+            notice_data.is_deleted = True
+            db.commit()
+            return {"message":"Notice Deleted Successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="Notice not found")
+    except Exception as e:
+        return HTTPException(status_code=500, detail=f"Error While Deleting: {str(e)}")
+    

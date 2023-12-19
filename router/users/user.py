@@ -81,3 +81,20 @@ async def delete_user(user_id: int, db: Session = Depends(get_db)):
     else:
         raise HTTPException(status_code=404, detail="User not found")
     
+
+# creating login using user credentials
+@router.get("/login/")
+async def login(user_email:str,user_password:str,db:Session = Depends(get_db)):
+    # trying if username exgist or not
+    try:
+        user = db.query(Users).filter(Users.user_email == user_email).first()
+        if user is not None:
+            if user.user_password == user_password:
+                return succes_response(user)
+            else:
+                return HTTPException(status_code=404, detail=f"Wrong Password")
+        else:
+            return HTTPException(status_code=404, detail=f"No User Found")
+    except Exception as e:
+        return HTTPException(status_code=404, detail=f"Erro While Login: {str(e)}")
+    
