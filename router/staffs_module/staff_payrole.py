@@ -17,7 +17,7 @@ class StaffPayrollBase(BaseModel):
     payroll_details: Optional[str]
 
 @router.post("/add_payroll/")
-async def create_payroll(payroll:StaffPayrollBase, db:Session = Depends(get_db)):
+async def create_payroll(payroll:StaffPayrollBase, db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         new_payroll = staff_payroll_data(**payroll.dict())
         db.add(new_payroll)
@@ -25,11 +25,11 @@ async def create_payroll(payroll:StaffPayrollBase, db:Session = Depends(get_db))
         db.refresh(new_payroll)
         return succes_response(new_payroll)
     except Exception as e:
-        return HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
 
 @router.get("/get_payroll_data/")
-async def get_payroll_data_by_id(staff_id:int, db:Session = Depends(get_db)):
+async def get_payroll_data_by_id(staff_id:int, db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     payroll_data = db.query(staff_payroll_data).filter(staff_payroll_data.staff_id == staff_id).first()
     if payroll_data is not None:
         return succes_response(payroll_data)
@@ -37,7 +37,7 @@ async def get_payroll_data_by_id(staff_id:int, db:Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Payroll not found")
 
 @router.put("/update_payroll/")
-async def update_staff(staff_id: int, staff: StaffPayrollBase, db: Session = Depends(get_db)):
+async def update_staff(staff_id: int, staff: StaffPayrollBase, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     payroll_data = db.query(staff_payroll_data).filter(staff_payroll_data.staff_id == staff_id).first()
     if payroll_data is not None:
         for key, value in staff.dict(exclude_unset=True).items(): 

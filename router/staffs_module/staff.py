@@ -38,20 +38,20 @@ class StaffPayrollBase(BaseModel):
     payroll_details: Optional[str]
 
 @router.get("/get_staffs_by_institute/")
-async def get_all_staffs(institute_id:int,db:Session = Depends(get_db)):
+async def get_all_staffs(institute_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     staffs_model = Staff
     staffs = ModelManager.get_data_by_institute(db.query(Staff),staffs_model,institute_id)
     return jsonable_encoder(staffs)
 
 @router.get("/get_staffs_by_field/{field_name}/{field_value}/")
-async def get_all_staffs_by_field(field_name:str,field_value:str,db:Session = Depends(get_db)):
+async def get_all_staffs_by_field(field_name:str,field_value:str,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     staff_model = Staff
     staffs = ModelManager.get_data_by_field(db.query(staff_model),field_name,field_value,staff_model)
     return jsonable_encoder(staffs)
 
 
 @router.post("/create_staff/")
-async def create_staff(staff:StaffBase,db:Session = Depends(get_db)):
+async def create_staff(staff:StaffBase,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         new_staff = Staff(**staff.dict())
         db.add(new_staff)
@@ -59,10 +59,10 @@ async def create_staff(staff:StaffBase,db:Session = Depends(get_db)):
         db.refresh(new_staff)
         return succes_response(new_staff)
     except Exception as e:
-        return HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
     
 @router.put("/update_staff/")
-async def update_staff(staff_id: int, staff: StaffBase, db: Session = Depends(get_db)):
+async def update_staff(staff_id: int, staff: StaffBase, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     staff_data = db.query(Staff).filter(Staff.staff_id == staff_id).first()
     if staff_data is not None:
         for key, value in staff.dict(exclude_unset=True).items():
@@ -75,7 +75,7 @@ async def update_staff(staff_id: int, staff: StaffBase, db: Session = Depends(ge
 
 
 @router.get("/get_staff_by_id/")
-async def get_staff_data_by_id(staff_id:int,db:Session = Depends(get_db)):
+async def get_staff_data_by_id(staff_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     staff_data = db.query(Staff).filter(Staff.staff_id == staff_id).first()
     if staff_data is not None:
         return {"status":"200","msg":"done",'response':staff_data}
@@ -84,7 +84,7 @@ async def get_staff_data_by_id(staff_id:int,db:Session = Depends(get_db)):
 
  
 @router.delete("/delete_staff/") 
-async def delete_staff(staff_id:int,db:Session = Depends(get_db)):
+async def delete_staff(staff_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     staff_data = db.query(Staff).filter(Staff.staff_id == staff_id).first()
     if staff_data is not None:
         staff_id = staff_data.staff_id

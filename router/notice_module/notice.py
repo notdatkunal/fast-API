@@ -22,7 +22,7 @@ class NoticeBase(BaseModel):
 
 # create notice
 @router.post("/create_notice/")
-async def create_notice(notice:NoticeBase,db:Session = Depends(get_db)):
+async def create_notice(notice:NoticeBase,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         new_notice = Notice(**notice.dict())
         db.add(new_notice)
@@ -30,32 +30,32 @@ async def create_notice(notice:NoticeBase,db:Session = Depends(get_db)):
         db.refresh(new_notice)
         return succes_response(jsonable_encoder(new_notice))
     except Exception as e:
-        return HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
     
 # get_notices_institute_wise
 @router.get("/get_notices_institute/")
-async def get_notices_institute_wise(institute_id:int,db:Session = Depends(get_db)):
-    notices = ModelManager.get_data_by_institute(db(Notice),Notice,institute_id)
+async def get_notices_institute_wise(institute_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
+    notices = ModelManager.get_data_by_institute(db.query(Notice),Notice,institute_id)
     return jsonable_encoder(notices)
 
 # get_notice_by_field
 @router.get("/get_notice_by_field/{field_name}/{field_value}/")
-async def get_notice_by_field(field_name:str,field_value:str,db:Session = Depends(get_db)):
+async def get_notice_by_field(field_name:str,field_value:str,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     notice = ModelManager.get_data_by_field(db.query(Notice),field_name,field_value,Notice)
     return jsonable_encoder(notice)
 
 # get_notice_by_id
 @router.get("/get_notice_by_id/")
-async def get_notice_by_id(notice_id:int,db:Session = Depends(get_db)):
+async def get_notice_by_id(notice_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         notice = db.query(Notice).filter(Notice.notice_id == notice_id).first()
         return jsonable_encoder(notice)
     except Exception as e:
-        return HTTPException(status_code=500, detail=f"No ID Found")
+        raise HTTPException(status_code=500, detail=f"No ID Found")
     
 # update_notice
 @router.put("/update_notice/")
-async def update_notice(notice_id:int,notice:NoticeBase,db:Session = Depends(get_db)):
+async def update_notice(notice_id:int,notice:NoticeBase,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         notice_data = db.query(Notice).filter(Notice.notice_id == notice_id).first()
         if notice_data is not None:
@@ -67,19 +67,5 @@ async def update_notice(notice_id:int,notice:NoticeBase,db:Session = Depends(get
         else:
             raise HTTPException(status_code=404, detail="Notice not found")
     except Exception as e:
-        return HTTPException(status_code=500, detail=f"Error While Updating: {str(e)}")
-    
-# delete_notice
-@router.delete("/delete_notice/")
-async def delete_notice(notice_id:int,db:Session = Depends(get_db)):
-    try:
-        notice_data = db.query(Notice).filter(Notice.notice_id == notice_id).first()
-        if notice_data is not None:
-            notice_data.is_deleted = True
-            db.commit()
-            return {"message":"Notice Deleted Successfully"}
-        else:
-            raise HTTPException(status_code=404, detail="Notice not found")
-    except Exception as e:
-        return HTTPException(status_code=500, detail=f"Error While Deleting: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error While Updating: {str(e)}")
     

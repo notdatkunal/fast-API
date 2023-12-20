@@ -26,7 +26,7 @@ class ParentBase(BaseModel):
 
 
 @router.post("/add_parent/")
-async def create_parent(parent:ParentBase, db:Session = Depends(get_db)):
+async def create_parent(parent:ParentBase, db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         new_parent = Parents(**parent.dict())
         db.add(new_parent)
@@ -34,16 +34,16 @@ async def create_parent(parent:ParentBase, db:Session = Depends(get_db)):
         db.refresh(new_parent)
         return {"status":"200","msg":"done",'response':new_parent}
     except Exception as e:
-        return HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
 @router.get("/all_Parents/")
-async def get_all_parents(db:Session = Depends(get_db)):
+async def get_all_parents(db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     parents = db.query(Parents).all()
     return jsonable_encoder(parents)
 
 
 @router.get("/get_parent_data/")
-async def get_parent_data_by_id(parent_id:int,db : Session = Depends(get_db)):
+async def get_parent_data_by_id(parent_id:int,db : Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     parent = db.query(Parents).filter(Parents.parent_id==parent_id).first()
     if parent is not None:
         return succes_response(jsonable_encoder(parent))
@@ -51,7 +51,7 @@ async def get_parent_data_by_id(parent_id:int,db : Session = Depends(get_db)):
         raise HTTPException(status_code=404,detail="Parent data not Found.")
     
 @router.put("/update_parent/")
-async def update_parent_data(parent_id:int,parent_data: ParentBase,db : Session = Depends(get_db)):
+async def update_parent_data(parent_id:int,parent_data: ParentBase,db : Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     parent_instance= db.query(Parents).filter(Parents.parent_id == parent_id).first()
     if parent_data is not None:
         for key, value in parent_data.dict(exclude_unset=True).items(): 
@@ -64,7 +64,7 @@ async def update_parent_data(parent_id:int,parent_data: ParentBase,db : Session 
 
 # for student form below code 
 @router.get("/parent/student_id")
-async def get_parent_data_by_id(student_id:int, db:Session = Depends(get_db)):
+async def get_parent_data_by_id(student_id:int, db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     parent_data = db.query(Parents).filter(Parents.student_id == student_id).first()
     if parent_data is not None:
         return {"status":"200","msg":"done",'response':parent_data}
@@ -72,7 +72,7 @@ async def get_parent_data_by_id(student_id:int, db:Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Parent not found")
 
 @router.put("/update/{student_id}")
-async def update_student(student_id: int, student: ParentBase, db: Session = Depends(get_db)):
+async def update_student(student_id: int, student: ParentBase, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     parent_data = db.query(Parents).filter(Parents.student_id == student_id).first()
     if parent_data is not None:
         for key, value in student.dict(exclude_unset=True).items(): 

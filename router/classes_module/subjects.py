@@ -17,7 +17,7 @@ class SubjectBase(BaseModel):
 
 @router.post("/create_subject/")
 async def create_subject_for_class(
-    subject_data: SubjectBase, db: Session = Depends(get_db)
+    subject_data: SubjectBase, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)
 ):
     # if (
     #     db.query(Subjects)
@@ -40,13 +40,13 @@ async def create_subject_for_class(
 
 
 @router.get("/get_all_sujects/")
-async def get_all_sujects(db: Session = Depends(get_db)):
+async def get_all_sujects(db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     subject_obj = db.query(Subjects).filter(Subjects.is_deleted == False).all()
     return jsonable_encoder(subject_obj)
 
 
 @router.get("/subject_id/")
-async def get_subject_byId(subject_id: int, db: Session = Depends(get_db)):
+async def get_subject_byId(subject_id: int, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     subject_data = (
         db.query(Subjects)
         .filter(Subjects.subject_id == subject_id, Subjects.is_deleted == False)
@@ -59,7 +59,7 @@ async def get_subject_byId(subject_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/get_subjects_by_class/")
-async def get_subjects_by_class(class_id: int, db: Session = Depends(get_db)):
+async def get_subjects_by_class(class_id: int, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     class_instance = (
         db.query(Classes)
         .filter(Classes.class_id == class_id, Classes.is_deleted == False)
@@ -78,7 +78,7 @@ async def get_subjects_by_class(class_id: int, db: Session = Depends(get_db)):
 
 @router.put("/update_subject_id/{subject_id}")
 async def update_subject(
-    subject_id: int, subjects: SubjectBase, db: Session = Depends(get_db)
+    subject_id: int, subjects: SubjectBase, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)
 ):
     subject_data = db.query(Subjects).filter(Subjects.subject_id == subject_id).first()
     if subject_id is not None:
@@ -92,7 +92,7 @@ async def update_subject(
 
 
 @router.delete("/delete_subject_id/{subject_id}")
-async def delete_subject(subject_id: int, db: Session = Depends(get_db)):
+async def delete_subject(subject_id: int, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     subjects_data = db.query(Subjects).filter(Subjects.subject_id == subject_id).first()
 
     if subjects_data is not None:

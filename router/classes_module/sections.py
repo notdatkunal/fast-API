@@ -16,12 +16,9 @@ class SectionBase(BaseModel):
 
 
 # post method for Section
-@router.post("/create_section/")
+@router.post("/create_section/",)
 async def create_section_for_class(
-    section_data: SectionBase, db: Session = Depends(get_db)
-):
-    # if db.query(Sections).filter(Sections.class_id == section_data.class_id and Sections.section_name == section_data.section_name).first():
-    #     raise HTTPException(status_code=400, detail="Section already registered")
+    section_data: SectionBase, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         section_instance = Sections(**section_data.dict())
         db.add(section_instance)
@@ -34,13 +31,13 @@ async def create_section_for_class(
 
 
 @router.get("/get_all_sections/")
-async def get_all_sections(db: Session = Depends(get_db)):
+async def get_all_sections(db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     section_obj = db.query(Sections).filter(Sections.is_deleted == False).all()
     return jsonable_encoder(section_obj)
 
 
 @router.get("/section_id/")
-async def get_section_byId(section_id: int, db: Session = Depends(get_db)):
+async def get_section_byId(section_id: int, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     section_data = (
         db.query(Sections)
         .filter(Sections.section_id == section_id, Sections.is_deleted == False)
@@ -55,7 +52,7 @@ async def get_section_byId(section_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/get_sections_by_class/")
-async def get_sections_by_class(class_id: int, db: Session = Depends(get_db)):
+async def get_sections_by_class(class_id: int, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     class_instance = (
         db.query(Classes)
         .filter(Classes.class_id == class_id, Classes.is_deleted == False)
@@ -74,7 +71,7 @@ async def get_sections_by_class(class_id: int, db: Session = Depends(get_db)):
 
 @router.put("/update_section_id/{section_id}")
 async def update_section(
-    section_id: int, sections: SectionBase, db: Session = Depends(get_db)
+    section_id: int, sections: SectionBase, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)
 ):
     section_data = db.query(Sections).filter(Sections.section_id == section_id).first()
     if section_data is not None:
@@ -88,7 +85,7 @@ async def update_section(
 
 
 @router.delete("/delete_section_id/{section_id}")
-async def delete_section(section_id: int, db: Session = Depends(get_db)):
+async def delete_section(section_id: int, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     section_data = db.query(Sections).filter(Sections.section_id == section_id).first()
 
     if section_data is not None:

@@ -23,7 +23,7 @@ class AssignmentsBase(BaseModel):
 
 # create assignment
 @router.post("/create_assignment/")
-async def create_assignment(assignment:AssignmentsBase,db:Session = Depends(get_db)):
+async def create_assignment(assignment:AssignmentsBase,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         new_assignment = Assignments(**assignment.dict())
         db.add(new_assignment)
@@ -31,32 +31,32 @@ async def create_assignment(assignment:AssignmentsBase,db:Session = Depends(get_
         db.refresh(new_assignment)
         return succes_response(jsonable_encoder(new_assignment))
     except Exception as e:
-        return HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
 # get_assignments_institute_wise
 @router.get("/get_assignments_institute/")
-async def get_assignments_institute_wise(institution_id:int,db:Session = Depends(get_db)):
+async def get_assignments_institute_wise(institution_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     assignments = ModelManager.get_data_by_institute(db.query(Assignments),Assignments,institution_id)
     return jsonable_encoder(assignments)
 
 # get_assignment_by_field
 @router.get("/get_assignment_by_field/{field_name}/{field_value}/")
-async def get_assignment_by_field(field_name:str,field_value:str,db:Session = Depends(get_db)):
+async def get_assignment_by_field(field_name:str,field_value:str,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     assignment = ModelManager.get_data_by_field(db.query(Assignments),field_name,field_value,Assignments)
     return jsonable_encoder(assignment)
 
 # get_assignment_by_id
 @router.get("/get_assignment_by_id/")
-async def get_assignment_by_id(assignment_id:int,db:Session = Depends(get_db)):
+async def get_assignment_by_id(assignment_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         assignment = db.query(Assignments).filter(Assignments.id == assignment_id).first()
         return jsonable_encoder(assignment)
     except Exception as e:
-        return HTTPException(status_code=500, detail=f"No ID Found")
+        raise HTTPException(status_code=500, detail=f"No ID Found")
 
 # update_assignment
 @router.put("/update_assignment/")
-async def update_assignment(assignment_id:int,assignment:AssignmentsBase,db:Session = Depends(get_db)):
+async def update_assignment(assignment_id:int,assignment:AssignmentsBase,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         assignment_data = db.query(Assignments).filter(Assignments.id == assignment_id).first()
         if assignment_data is not None:
@@ -68,11 +68,11 @@ async def update_assignment(assignment_id:int,assignment:AssignmentsBase,db:Sess
         else:
             raise HTTPException(status_code=404, detail="Assignment not found")
     except Exception as e:
-        return HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
 # delete_assignment
 @router.delete("/delete_assignment/")
-async def delete_assignment(assignment_id:int,db:Session = Depends(get_db)):
+async def delete_assignment(assignment_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         assignment_data = db.query(Assignments).filter(Assignments.id == assignment_id).first()
         assignment_data.is_deleted = True
@@ -80,4 +80,4 @@ async def delete_assignment(assignment_id:int,db:Session = Depends(get_db)):
         db.refresh(assignment_data)
         return succes_response(assignment_data)
     except Exception as e:
-        return HTTPException(status_code=500, detail=f"Assignment not found")
+        raise HTTPException(status_code=500, detail=f"Assignment not found")

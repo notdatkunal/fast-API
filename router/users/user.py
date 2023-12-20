@@ -4,14 +4,15 @@ sys.path.append("..")
 from router.basic_import import *
 from models.users import Users
 from router.utility import succes_response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field,EmailStr
+from .login import get_password_hash
 
 router = APIRouter()
 # base models
 class UserBase(BaseModel):
     user_name: str = Field(min_length=3, max_length=30)
     user_password: str = Field(min_length=3, max_length=30)
-    user_email: str = Field(min_length=3, max_length=30)
+    user_email: EmailStr = Field(min_length=3, max_length=30)
     user_phone_number: str = Field(min_length=10, max_length=10)
     is_deleted: bool = False
     user_role: str = Field(min_length=3, max_length=30)
@@ -24,16 +25,18 @@ class UserBase(BaseModel):
 async def create_user(user:UserBase,db:Session = Depends(get_db)):
     try:
         new_user = Users(**user.dict())
+        new_user.user_password = get_password_hash(new_user.user_password)
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
+        new_user.user_password = user.user_password
         return succes_response(new_user)
     except Exception as e:
         return HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
 # get_user_by_institute
 @router.get("/get_users_by_institute/")
-async def get_user_by_institute(institute_id:int,db:Session = Depends(get_db)):
+async def get_user_by_institute(institute_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         user = db.query(Users).filter(Users.institute_id == institute_id).all()
         return jsonable_encoder(user)
@@ -42,7 +45,7 @@ async def get_user_by_institute(institute_id:int,db:Session = Depends(get_db)):
     
 # get_user_by_id
 @router.get("/get_user_by_id/")
-async def get_user_by_id(user_id:int,db:Session = Depends(get_db)):
+async def get_user_by_id(user_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         user = db.query(Users).filter(Users.user_id == user_id).first()
         return jsonable_encoder(user)
@@ -51,27 +54,27 @@ async def get_user_by_id(user_id:int,db:Session = Depends(get_db)):
 
 # get_users_by_field
 @router.get("/get_users_by_field/{field_name}/{field_value}/")
-async def get_users_by_field(field_name:str,field_value:str,db:Session = Depends(get_db)):
+async def get_users_by_field(field_name:str,field_value:str,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     users_model = Users
     users_objs =ModelManager.get_data_by_field(db.query(users_model),field_name,field_value,users_model)
     return jsonable_encoder(users_objs)
 
-# update_user
+# Update user route with authentication
 @router.put("/update_user/")
-async def update_user(user_id: int, user: UserBase, db: Session = Depends(get_db)) :
-    user_data=db.query(Users).filter(Users.user_id == user_id).first()
+async def update_user(user_id: int, user: UserBase, current_user: str = Depends(is_authenticated), db: Session = Depends(get_db)):
+    user_data = db.query(Users).filter(Users.user_id == user_id).first()
     if user_data is not None:
-        for key ,value in user.dict(exclude_unset=True).items():
-            setattr(user_data, key ,value)
+        for key, value in user.dict(exclude_unset=True).items():
+            setattr(user_data, key, value)
         db.commit()
         db.refresh(user_data)    
         return succes_response(user_data)
     else:
         raise HTTPException(status_code=404, detail="User not found")
-    
-# delete_user
+
+# Delete user route with authentication
 @router.delete("/delete_user/")
-async def delete_user(user_id: int, db: Session = Depends(get_db)):
+async def delete_user(user_id: int, current_user: str = Depends(is_authenticated), db: Session = Depends(get_db)):
     user_data = db.query(Users).filter(Users.user_id == user_id).first()
     if user_data is not None:
         user_data.is_deleted = True
@@ -82,19 +85,17 @@ async def delete_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     
 
-# creating login using user credentials
+
 @router.get("/login/")
-async def login(user_email:str,user_password:str,db:Session = Depends(get_db)):
-    # trying if username exgist or not
-    try:
-        user = db.query(Users).filter(Users.user_email == user_email).first()
-        if user is not None:
-            if user.user_password == user_password:
-                return succes_response(user)
-            else:
-                return HTTPException(status_code=404, detail=f"Wrong Password")
+async def login(user_email: str, user_password: str, db: Session = Depends(get_db)):
+    user = db.query(Users).filter(Users.user_email == user_email).first()
+    if user is not None:
+        if user.user_password == user_password:
+            return succes_response(user)
         else:
-            return HTTPException(status_code=404, detail=f"No User Found")
-    except Exception as e:
-        return HTTPException(status_code=404, detail=f"Erro While Login: {str(e)}")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Wrong Password")
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No User Found")
+
+
     

@@ -16,9 +16,9 @@ class ModelManager(BaseQueryManager):
             raise HTTPException(status_code=404, detail=str(e))
     # -------student model manager----------------
     @staticmethod
-    def get_student_data_by_institute(query: ManagedQuery, institute_id: int) -> ManagedQuery:
+    def get_student_data_by_institute(query: ManagedQuery,institite_id: int) -> ManagedQuery:
         try:
-            data = query.filter(Student.institute_id == institute_id).all()
+            data = query.filter(Student.institute_id == institite_id).all()
             return data
         except Exception as e:
             raise HTTPException(status_code=404, detail=str(e))
@@ -27,7 +27,9 @@ class ModelManager(BaseQueryManager):
     @staticmethod
     def get_classes_by_institute(query: ManagedQuery, institite_id: int) -> ManagedQuery:
         return query.filter(Classes.institute_id == institite_id and Classes.is_deleted == False)
+    
     # -------classes model manager----------------
+
     # -------Staff model manager------------------
     @staticmethod
     def get_data_by_institute(query: ManagedQuery,model,institite_id: int) -> ManagedQuery:

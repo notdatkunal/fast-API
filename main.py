@@ -7,9 +7,10 @@ from router.classes_module import sections,subjects,classes
 from router.student_module import student,parents
 from router.transport_module import stops,transports
 from router.staffs_module import staff,staff_payrole
-from router.users import user
+from router.users import user,login
 from router.notice_module import notice
 from router.assignments import assignment
+from router.users.login import *
 app = FastAPI(
    title="GSM API",
    description="GURUKUL A School Management System",
@@ -32,6 +33,12 @@ app.include_router(
    institute.router,
    prefix="/Institute",
    tags=['Institute'],
+)
+#------------------------------------------LOGIN START ---------------------------------------------------------
+app.include_router(
+   login.router,
+   prefix="/Login",
+   tags=['Login'],
 )
 #------------------------------------------STUDENTS START ---------------------------------------------------------
 app.include_router(

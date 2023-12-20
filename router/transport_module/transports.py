@@ -17,7 +17,7 @@ class TransportBase(BaseModel):
 
 # post  api  for transport
 @router.post("/create_transport/")
-async def create_transport(trans_data:TransportBase,db:Session = Depends(get_db)):
+async def create_transport(trans_data:TransportBase,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         trans_instnace = tbl_transports(**trans_data.dict())
         db.add(trans_instnace)
@@ -35,13 +35,13 @@ async def create_transport(trans_data:TransportBase,db:Session = Depends(get_db)
 
     # get api  code for transportation
 @router.get("/get_all_transports/")
-async def get_all_transports(db:Session = Depends(get_db)):
+async def get_all_transports(db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     return jsonable_encoder(db.query(tbl_transports).all())
 
 
 # update api code for  transpotation 
 @router.put("/update_transport/")
-async def update_transport(transport_id: int, transport: TransportBase, db: Session = Depends(get_db)):
+async def update_transport(transport_id: int, transport: TransportBase, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     # Use .first() to execute the query and retrieve the first result
     transpotation_data = db.query(tbl_transports).filter(tbl_transports.transport_id == transport_id).first()
     if  transpotation_data  is not None:
@@ -54,7 +54,7 @@ async def update_transport(transport_id: int, transport: TransportBase, db: Sess
         raise HTTPException(status_code=404, detail="transport not found")
     
 @router.get("/get_transport_data_by_id/")
-async def get_transport_data_by_id(transport_id:int,db:Session = Depends(get_db)):
+async def get_transport_data_by_id(transport_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     transport_details = db.query(tbl_transports).filter(tbl_transports.transport_id == transport_id).first()
     if transport_details is not None:
         return {"status":"200","msg":"done",'response':transport_details}
@@ -64,7 +64,7 @@ async def get_transport_data_by_id(transport_id:int,db:Session = Depends(get_db)
 
 # delete api code for  transpotation
 @router.delete("/delete_transport/")
-async def delete_transport(transport_id:int,db:Session = Depends(get_db)):
+async def delete_transport(transport_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     transport_data = db.query(tbl_transports).filter(tbl_transports.transport_id == transport_id).first()
     if transport_data is not None:
         transport_id = transport_data.transport_id

@@ -30,28 +30,30 @@ class StudentBase(BaseModel):
 
 # geting all student according to institute id
 @router.get("/get_students_by_intitute/")
-async def get_all_students( institute_id:int,db:Session = Depends(get_db)):
+async def get_all_students( institute_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     students = ModelManager.get_student_data_by_institute(db.query(Student),institute_id)
-    students_data = return_student_data_with_names(students,db)
-    return jsonable_encoder(students_data)
+    return jsonable_encoder(students)
 
 @router.get("/get_students_by_field/{field_name}/{field_value}/")
-async def get_all_students_by_field(field_name:str,field_value:str,db:Session = Depends(get_db)):
+async def get_all_students_by_field(field_name:str,field_value:str,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     student_model = Student
     students = ModelManager.get_data_by_field(db.query(student_model),field_name,field_value,student_model)
     return jsonable_encoder(students)
 
 
-def return_student_data_with_names(student_data,db):
-    for student in student_data:
-        student.class_id =db.get(Classes,student.class_id).class_name
-        student.section_id = db.query(Sections).get(student.section_id).section_name
-        student.transport_id = db.query(Transport).get(student.transport_id).transport_name
-    return student_data
+# def return_student_data_with_names(student_data):
+#     student_data_with_names = []
+#     for student in student_data:
+#         student.class_id = db.query(Classes).get(student.class_id).class_name
+#         student.section_id = db.query(Sections).get(student.section_id).section_name
+#         student.transport_id = db.query(Transport).get(student.transport_id).transport_name
+#         student_data_with_names.append(student)
+#     return student_data_with_names
+
 
 # creating student data
 @router.post("/create_student/")
-async def create_student(student: StudentBase, db: Session = Depends(get_db)):
+async def create_student(student: StudentBase, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         # Create a new Student instance with the provided data
         new_student = Student(**student.dict())
@@ -69,13 +71,13 @@ async def create_student(student: StudentBase, db: Session = Depends(get_db)):
         new_student_with_names.transport_id = db.query(Transport).get(new_student_with_names.transport_id).transport_name
         return succes_response(new_student_with_names)
     except Exception as e:
-        return HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
 
 
 # updating student data
 @router.put("/update_student/{student_id}")
-async def update_student(student_id: int, student: StudentBase, db: Session = Depends(get_db)):
+async def update_student(student_id: int, student: StudentBase, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     # Use .first() to execute the query and retrieve the first result
     student_data = db.query(Student).filter(Student.student_id == student_id).first()
     if student_data is not None:
@@ -90,7 +92,7 @@ async def update_student(student_id: int, student: StudentBase, db: Session = De
 
 # geting student data by id
 @router.get("/get_student/")
-async def get_student_data_by_id(student_id:int,db:Session = Depends(get_db)):
+async def get_student_data_by_id(student_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     student_data = db.query(Student).filter(Student.student_id == student_id).first()
     if student_data is not None:
         return succes_response(student_data)
@@ -99,7 +101,7 @@ async def get_student_data_by_id(student_id:int,db:Session = Depends(get_db)):
 
 # deleteing the students
 @router.delete("/delete_student/")
-async def delete_student(student_id:int,db:Session = Depends(get_db)):
+async def delete_student(student_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     student_data = db.query(Student).filter(Student.student_id == student_id).first()
     if student_data is not None:
         student_id = student_data.student_id

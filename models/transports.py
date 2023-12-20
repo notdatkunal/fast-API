@@ -10,6 +10,7 @@ class Transport(BASE):
     vehicle_details = Column(String(255),nullable=False)
     register_date = Column(Date)
     is_deleted = Column(Boolean,default=False)
+    institute_id = Column(Integer, ForeignKey("institute.id", ondelete="CASCADE"), nullable=True, name='institute_id')
 
 class Stops(BASE):
     __tablename__ = "Tbl_Stops"
