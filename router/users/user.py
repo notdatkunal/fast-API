@@ -86,16 +86,16 @@ async def delete_user(user_id: int, current_user: str = Depends(is_authenticated
     
 
 
-@router.get("/login/")
-async def login(user_email: str, user_password: str, db: Session = Depends(get_db)):
-    user = db.query(Users).filter(Users.user_email == user_email).first()
-    if user is not None:
-        if user.user_password == user_password:
-            return succes_response(user)
-        else:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Wrong Password")
-    else:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No User Found")
+# @router.get("/login/")
+# async def login(user_email: str, user_password: str, db: Session = Depends(get_db)):
+#     user = db.query(Users).filter(Users.user_email == user_email).first()
+#     if user is not None:
+#         if user.user_password == user_password:
+#             return succes_response(user)
+#         else:
+#             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Wrong Password")
+#     else:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No User Found")
 
 
     

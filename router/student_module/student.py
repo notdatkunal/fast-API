@@ -1,5 +1,6 @@
 from datetime import date
 import sys
+import uuid
 sys.path.append("..")
 from router.basic_import import *
 from models.students import Student
@@ -20,13 +21,26 @@ class StudentBase(BaseModel):
     phone_number :str = Field(min_length=10)
     email :Optional[str]
     admission_date :date
-    roll_number :str =Field(max_length=20)
     photo :str
-    slug :str
+    roll_number :Optional[int]
     # foreign keys
     class_id :int
     section_id :int
-    transport_id :Optional[int]
+    transport_id :Optional[str]
+
+# genarating slug using student name and student class
+def generate_slug(student_name:str,db):
+    slug = student_name.replace(" ","-")
+    while True:
+        if db.query(Student).filter(Student.slug == slug).first():
+            slug = slug + str(uuid.uuid4())[:6]
+        else:
+            return slug
+        
+# genarate rollnumber using student class and section and institute id
+def generate_roll_number(class_id:int,section_id:int,institute_id:int,db):
+    roll_number = db.query(Student).filter(Student.class_id == class_id,Student.section_id == section_id,Student.institute_id == institute_id).count()
+    return roll_number + 1
 
 # geting all student according to institute id
 @router.get("/get_students_by_intitute/")
@@ -41,15 +55,6 @@ async def get_all_students_by_field(field_name:str,field_value:str,db:Session = 
     return jsonable_encoder(students)
 
 
-# def return_student_data_with_names(student_data):
-#     student_data_with_names = []
-#     for student in student_data:
-#         student.class_id = db.query(Classes).get(student.class_id).class_name
-#         student.section_id = db.query(Sections).get(student.section_id).section_name
-#         student.transport_id = db.query(Transport).get(student.transport_id).transport_name
-#         student_data_with_names.append(student)
-#     return student_data_with_names
-
 
 # creating student data
 @router.post("/create_student/")
@@ -57,7 +62,8 @@ async def create_student(student: StudentBase, db: Session = Depends(get_db),cur
     try:
         # Create a new Student instance with the provided data
         new_student = Student(**student.dict())
-
+        new_student.slug = generate_slug(student.student_name,db)
+        new_student.roll_number = generate_roll_number(student.class_id,student.section_id,student.institute_id,db)
         # Add, commit, and refresh the new student
         db.add(new_student)
         db.commit()

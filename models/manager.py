@@ -19,6 +19,7 @@ class ModelManager(BaseQueryManager):
     def get_student_data_by_institute(query: ManagedQuery,institite_id: int) -> ManagedQuery:
         try:
             data = query.filter(Student.institute_id == institite_id).all()
+            # data = query.filter(Student.institute_id == institite_id).all()
             return data
         except Exception as e:
             raise HTTPException(status_code=404, detail=str(e))

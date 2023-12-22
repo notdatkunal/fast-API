@@ -5,36 +5,35 @@ from models.classes import Classes,Sections
 from .sections import SectionBase
 from router.utility import succes_response
 # from .sections import 
+import uuid
 
 router = APIRouter()
 # base models
 class ClassBase(BaseModel):
     class_name : str = Field(min_length=3)
-    slug:str
     is_deleted: bool = Field(default=False)
     institute_id:int
+
+def generate_slug(class_name,db):
+    slug = class_name.replace(" ", "-")
+    while True:
+        if db.query(Classes).filter(Classes.slug == slug).first():
+            slug = slug + "-" + str(uuid.uuid4())[:4]
+        else:
+            return slug
 
 
 @router.post("/create_class/")
 async def create_class(class_data: ClassBase, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         class_instance = Classes(**class_data.dict())
+        class_instance.slug = generate_slug(class_instance.class_name,db)
         db.add(class_instance)
         db.commit()
         db.refresh(class_instance)
-        payload = class_instance
-
-        section_data = {
-            "section_name": "Section A",
-            'class_id': class_instance.class_id,
-            "is_deleted": False
-        }
-        section_instance =Sections(**section_data)
-        db.add(section_instance)
-        db.commit()
-        return succes_response(payload)
+        return succes_response(class_instance)
     except Exception as e:
-        return HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
 @router.get("/get_classes_by_institute/")
 async def get_all_classes(institite_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):

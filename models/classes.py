@@ -12,6 +12,7 @@ class Classes(BASE):
 
 
 
+
 class Sections(BASE):
     __tablename__ = "Tbl_Sections"
     section_id = Column(Integer,primary_key=True,autoincrement=True)
