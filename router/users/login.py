@@ -18,6 +18,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60*4
 class Token(BaseModel):
     access_token: str
     token_type: str
+    institution_id:int
 
 class TokenData(BaseModel):
     username: Optional[str] = None
@@ -98,7 +99,10 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.user_email}, expires_delta=access_token_expires)
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, 
+            "token_type": "bearer",
+            'institution_id':user.institute_id,
+            }
 
 @router.get("/users/me/", response_model=UserBase)
 async def read_users_me(current_user: UserBase = Depends(get_current_active_user)):
