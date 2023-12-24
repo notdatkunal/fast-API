@@ -51,17 +51,6 @@ async def get_all_institutes(db: Session = Depends(get_db)):
 async def create_institute(institute: InstituteBase, db: Session = Depends(get_db)):
     new_institute = Institute
     db.add(new_institute(**institute.__dict__))
-    user_base = {
-        "user_name": institute.point_of_contact,
-        "user_password": institute.institute_phone,
-        "user_email": institute.institute_email,
-        "user_phone_number": institute.institute_phone,
-        "user_role": "admin",
-        "institute_id": int(institute.id),
-        "is_deleted": False,
-        'user_photo_url': "https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png"
-    }
-    create_user(UserBase(**user_base), db)
     db.commit()
     return {"msg": "Institute is Saved"}
 
