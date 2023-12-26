@@ -42,13 +42,13 @@ def create_user(user: UserBase, db: Session = Depends(get_db)):
         return HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
 @router.get("/")
-async def get_all_institutes(db: Session = Depends(get_db)):
+async def get_all_institutes(db:db_dependency):
     all_institutes = db.query(Institute).all()
     return jsonable_encoder(all_institutes)
 
 
 @router.post("/")
-async def create_institute(institute: InstituteBase, db: Session = Depends(get_db)):
+async def create_institute(institute: InstituteBase, db:db_dependency):
     new_institute = Institute
     db.add(new_institute(**institute.__dict__))
     db.commit()

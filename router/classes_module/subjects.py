@@ -62,7 +62,7 @@ async def get_subject_byId(subject_id: int, db: Session = Depends(get_db),curren
 async def get_subjects_by_class(class_id: int, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     class_instance = (
         db.query(Classes)
-        .filter(Classes.class_id == class_id, Classes.is_deleted == False)
+        .filter(Classes.class_id == class_id and Classes.is_deleted == False)
         .first()
     )
     if class_instance:

@@ -2,7 +2,7 @@ from database import BASE
 from .base import *
 
 class Transport(BASE):
-    __tablename__ = "Tbl_Transport"
+    __tablename__ = "tbl_transport"
     institute_id = Column(Integer,ForeignKey("institute.id",ondelete="CASCADE"),nullable=True)
     transport_id = Column(Integer,primary_key=True,autoincrement=True)
     transport_name = Column(String(100),nullable=False)
@@ -13,11 +13,11 @@ class Transport(BASE):
     institute_id = Column(Integer, ForeignKey("institute.id", ondelete="CASCADE"), nullable=True, name='institute_id')
 
 class Stops(BASE):
-    __tablename__ = "Tbl_Stops"
+    __tablename__ = "tbl_stops"
     stop_id = Column(Integer,primary_key=True,autoincrement=True)
-    transport_id = Column(Integer,ForeignKey("Tbl_Transport.transport_id",ondelete="CASCADE"))
+    transport_id = Column(Integer,ForeignKey("tbl_transport.transport_id",ondelete="CASCADE"))
     stop_name = Column(String(20)) 
 
 class TransportRoute(BASE):
-    __tablename__ = "Tbl_Transport_Route"
+    __tablename__ = "tbl_transport_route"
     id = Column(Integer,primary_key=True,autoincrement=True)

@@ -22,11 +22,9 @@ class StudentBase(BaseModel):
     email :Optional[str]
     admission_date :date
     photo :str
-    roll_number :Optional[int]
     # foreign keys
     class_id :int
     section_id :int
-    transport_id :Optional[str]
 
 # genarating slug using student name and student class
 def generate_slug(student_name:str,db):
@@ -38,9 +36,29 @@ def generate_slug(student_name:str,db):
             return slug
         
 # genarate rollnumber using student class and section and institute id
-def generate_roll_number(class_id:int,section_id:int,institute_id:int,db):
-    roll_number = db.query(Student).filter(Student.class_id == class_id,Student.section_id == section_id,Student.institute_id == institute_id).count()
-    return roll_number + 1
+def generate_roll_number(class_id: int, section_id: int, institute_id: int, db):
+    class_name = db.query(Classes).get(class_id).class_name.split(" ")[-1]
+    section_name = db.query(Sections).get(section_id).section_name.split(" ")[-1]
+    last_roll_number = db.query(Student).filter(
+        Student.class_id == class_id,
+        Student.section_id == section_id,
+        Student.institute_id == institute_id
+    ).order_by(Student.student_id.desc()).first()
+
+    if last_roll_number is None:
+        last_roll_number = 1
+    else:
+        # Extract the roll number from the last_roll_number object
+        last_roll_number = int(last_roll_number.roll_number.split('-')[-1])
+
+    roll_number = f"{institute_id}-{class_name}-{section_name}-{last_roll_number + 1}"
+
+    # Ensure the generated roll number is unique
+    while db.query(Student).filter(Student.roll_number == roll_number).first():
+        last_roll_number += 1
+        roll_number = f"{institute_id}-{class_name}-{section_name}-{last_roll_number}"
+
+    return roll_number
 
 # geting all student according to institute id
 @router.get("/get_students_by_intitute/")
@@ -74,7 +92,8 @@ async def create_student(student: StudentBase, db: Session = Depends(get_db),cur
         # Convert foreign keys' names to IDs
         new_student_with_names.class_id = db.query(Classes).get(new_student_with_names.class_id).class_name
         new_student_with_names.section_id = db.query(Sections).get(new_student_with_names.section_id).section_name
-        new_student_with_names.transport_id = db.query(Transport).get(new_student_with_names.transport_id).transport_name
+        if db.query(Transport).get(new_student_with_names.transport_id):
+            new_student_with_names.transport_id = db.query(Transport).get(new_student_with_names.transport_id).transport_name
         return succes_response(new_student_with_names)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")

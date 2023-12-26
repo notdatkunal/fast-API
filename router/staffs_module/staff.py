@@ -1,5 +1,6 @@
 from datetime import date
 import sys
+import uuid
 sys.path.append("..")
 from router.basic_import import *
 from models.staffs import Staff,Staff_Payroll as staff_payroll_data
@@ -9,7 +10,7 @@ router = APIRouter()
 
 class StaffBase(BaseModel):
     institute_id: int
-    employee_id: int
+    # employee_id: int
     staff_name: str = Field(..., min_length=3, max_length=30)
     photo: Optional[str]
     role: Optional[str] = None  
@@ -23,11 +24,9 @@ class StaffBase(BaseModel):
     date_of_birth: Optional[date] = Field(default_factory=date.today)
     joining_date: Optional[date] = Field(default_factory=date.today)
     salary: Optional[str]
-    slug: Optional[str]
+    # slug: Optional[str]
     is_deleted: Optional[bool] = False  
-    
-    # foreign keys
-    transport_id: Optional[int] = None
+
     
 class StaffPayrollBase(BaseModel):
     staff_id: int
@@ -36,6 +35,31 @@ class StaffPayrollBase(BaseModel):
     payment_date: Optional[date] = Field(default_factory=date.today)
     payment_mode: Optional[str]
     payroll_details: Optional[str]
+
+def generate_slug(name:str,db):
+    slug = name.replace(" ","-")
+    while db.query(Staff).filter(Staff.slug == slug).first():
+        slug = slug + str(uuid.uuid4())[:4]
+    return slug
+
+def generate_employee_id(institute_id: int, db):
+    last_employee = db.query(Staff).filter(Staff.institute_id == institute_id).order_by(Staff.staff_id.desc()).first()
+
+    if last_employee is None:
+        last_employee_id = 1
+    else:
+        # Extract the numeric part from last_employee_id
+        last_employee_id = int(last_employee.employee_id.split('-')[-1])
+
+    employee_id = f"EMP-{institute_id}-{last_employee_id + 1}"
+
+    # Ensure the generated employee_id is unique
+    while db.query(Staff).filter(Staff.employee_id == employee_id).first():
+        last_employee_id += 1
+        employee_id = f"EMP-{institute_id}-{last_employee_id}"
+
+    return employee_id
+
 
 @router.get("/get_staffs_by_institute/")
 async def get_all_staffs(institute_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
@@ -54,6 +78,8 @@ async def get_all_staffs_by_field(field_name:str,field_value:str,db:Session = De
 async def create_staff(staff:StaffBase,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         new_staff = Staff(**staff.dict())
+        new_staff.slug = generate_slug(new_staff.staff_name,db)
+        new_staff.employee_id = generate_employee_id(new_staff.institute_id,db)
         db.add(new_staff)
         db.commit()
         db.refresh(new_staff)

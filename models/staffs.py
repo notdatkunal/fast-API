@@ -2,12 +2,12 @@ from database import BASE
 from .base import *
 
 class Staff(BASE):
-    __tablename__ = "tbl_staff"
+    __tablename__ = "tbl_staffs"
     institute_id = Column(
         Integer, ForeignKey("institute.id", ondelete="CASCADE"), nullable=True
     )
     staff_id = Column(Integer, primary_key=True, autoincrement=True)
-    employee_id = Column(String(20))
+    employee_id = Column(String(30))
     staff_name = Column(String(30))
     photo = Column(String(255), nullable=True)
     role = Column(String(30), nullable=True)
@@ -28,7 +28,7 @@ class Staff(BASE):
     # foreign keys
     transport_id = Column(
         Integer,
-        ForeignKey("Tbl_Transport.transport_id", ondelete="CASCADE"),
+        ForeignKey("tbl_transport.transport_id", ondelete="CASCADE"),
         nullable=True,
     )
 
@@ -43,5 +43,5 @@ class Staff_Payroll(BASE):
 
     # foreign keys
     staff_id = Column(
-        Integer, ForeignKey("tbl_staff.staff_id", ondelete="CASCADE"), nullable=True
+        Integer, ForeignKey("tbl_staffs.staff_id", ondelete="CASCADE"), nullable=True
     )

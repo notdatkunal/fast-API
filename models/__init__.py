@@ -8,4 +8,5 @@ from .staffs import Staff,Staff_Payroll
 from .assignments import Assignments
 from .notice import Notice,StudentNotice,StaffNotice
 from .users import Users
+from .calender import Calender
 

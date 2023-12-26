@@ -2,7 +2,7 @@ from database import BASE
 from .base import *
 
 class Users(BASE):
-    __tablename__ = "users"
+    __tablename__ = "tbl_users"
     # create fiels for user
     user_id = Column(Integer,primary_key=True,autoincrement=True)
     institute_id = Column(Integer,ForeignKey("institute.id",ondelete="CASCADE"))
