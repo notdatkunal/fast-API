@@ -61,7 +61,7 @@ def generate_roll_number(class_id: int, section_id: int, institute_id: int, db):
     return roll_number
 
 # geting all student according to institute id
-@router.get("/get_students_by_intitute/")
+@router.get("/get_students_by_intitute/",description="get all the students by institute id")
 async def get_all_students( institute_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     students = ModelManager.get_student_data_by_institute(db.query(Student),institute_id)
     return jsonable_encoder(students)

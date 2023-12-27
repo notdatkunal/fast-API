@@ -8,7 +8,7 @@ class Notice(BASE):
     notice_date = Column(Date)
     due_date = Column(Date)
     notice_title = Column(String(500))
-    notice_description = Column(String(500))
+    notice_description = Column(String(800))
     recipient = Column(String(50))
     notice_announced_by = Column(String(100))
     is_deleted = Column(Boolean, default=False)

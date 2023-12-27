@@ -9,4 +9,5 @@ from .assignments import Assignments
 from .notice import Notice,StudentNotice,StaffNotice
 from .users import Users
 from .calender import Calender
+from .grade import Grades,GradeApplicable
 
