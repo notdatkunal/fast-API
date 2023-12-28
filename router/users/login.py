@@ -19,6 +19,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str
     institution_id:int
+    subscribers_id:int
 
 class TokenData(BaseModel):
     username: Optional[str] = None
@@ -102,6 +103,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return {"access_token": access_token, 
             "token_type": "bearer",
             'institution_id':user.institute_id,
+            'subscriber_id':user.subscribers_id,
             }
 
 @router.get("/users/me/", response_model=UserBase)

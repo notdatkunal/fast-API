@@ -150,7 +150,7 @@ async def get_all_students_by_transport(transport_id:int,db:db_dependency,curren
     if trasport is None:
         raise HTTPException(status_code=404, detail="Transport not found")
     try:
-        students = db.query(Student).filter(Student.transport_id == transport_id).all().order_by(Student.roll_number)
+        students = db.query(Student).filter(Student.transport_id == transport_id).order_by(Student.roll_number).all()
         if students is not None:
             return succes_response(students)
         else:
@@ -165,7 +165,7 @@ async def get_all_staffs_by_transport(transport_id:int,db:db_dependency,current_
     if trasport is None:
         raise HTTPException(status_code=404, detail="Transport not found")
     try:
-        staffs = db.query(Staff).filter(Staff.transport_id == transport_id).all().order_by(Staff.employee_id)
+        staffs = db.query(Staff).filter(Staff.transport_id == transport_id).order_by(Staff.employee_id).all()
         if staffs is not None:
             return succes_response(staffs)
         else:

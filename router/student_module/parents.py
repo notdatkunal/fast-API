@@ -65,9 +65,9 @@ async def update_parent_data(parent_id:int,parent_data: ParentBase,db : Session 
 # for student form below code 
 @router.get("/parent/student_id")
 async def get_parent_data_by_id(student_id:int, db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
-    parent_data = db.query(Parents).filter(Parents.student_id == student_id).first()
+    parent_data = db.query(Parents).filter(Parents.student_id == student_id).all()
     if parent_data is not None:
-        return {"status":"200","msg":"done",'response':parent_data}
+        return succes_response(jsonable_encoder(parent_data))
     else:
         raise HTTPException(status_code=404, detail="Parent not found")
 
@@ -79,6 +79,6 @@ async def update_student(student_id: int, student: ParentBase, db: Session = Dep
             setattr(parent_data, key, value)
         db.commit()
         db.refresh(parent_data)
-        return {"status": "200", "msg": "done", 'response': parent_data}
+        return succes_response(parent_data)
     else:
         raise HTTPException(status_code=404, detail="Parent not found")
