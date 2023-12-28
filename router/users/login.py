@@ -19,7 +19,6 @@ class Token(BaseModel):
     access_token: str
     token_type: str
     institution_id:int
-    subscribers_id:int
 
 class TokenData(BaseModel):
     username: Optional[str] = None
