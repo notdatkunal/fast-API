@@ -102,8 +102,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         data={"sub": user.user_email}, expires_delta=access_token_expires)
     return {"access_token": access_token, 
             "token_type": "bearer",
-            'institution_id':user.institute_id,
-            'subscriber_id':user.subscribers_id,
+            'institution_id':user.institute_id
             }
 
 @router.get("/users/me/", response_model=UserBase)
