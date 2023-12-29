@@ -63,4 +63,7 @@ async def delete_notice(notice_id:int,db:Session = Depends(get_db),current_user:
     db.delete(notice)
     db.commit()
     return succes_response(jsonable_encoder(notice))
+
+
+
     

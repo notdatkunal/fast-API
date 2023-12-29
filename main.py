@@ -8,10 +8,10 @@ from router.student_module import student,parents
 from router.transport_module import stops,transports
 from router.staffs_module import staff,staff_payrole
 from router.users import user,login
-from router.notice_module import notice
+from router.notice_module import notice,student_notice
 from router.assignments import assignment
 from router.calender import calender
-from router.grade import grade,grade_appli
+from router.grade import grade
 from router.users.login import *
 app = FastAPI(
    title="GSM API",
@@ -72,12 +72,6 @@ app.include_router(
    prefix="/Grades",
    tags=['Grades'],
 )
-# ------------------------------------------Grade Applicabul ---------------------------------------------
-app.include_router(
-   grade_appli.router,
-   prefix="/GradeApplicable",
-   tags=['GradeApplicable'],
-)
 # ------------------------------------------Notices ---------------------------------------------------------
 app.include_router(
    notice.router,
@@ -119,6 +113,11 @@ app.include_router(
    student.router,
    prefix="/Students",
    tags=['Students'],
+)
+app.include_router(
+   student_notice.router,
+   prefix="/StudentNotice",
+   tags=['StudentNotice'],
 )
 # ------------------------------------------Subjects ---------------------------------------------------------
 app.include_router(

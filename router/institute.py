@@ -68,14 +68,13 @@ async def get_institute_by_id(institute_id: int, db: Session = Depends(get_db)):
 
 @router.put("/Institute/")
 async def update_institute(institute_id:int,instituteBase: InstituteBase, db: Session = Depends(get_db)):
-    try:
-        institute = db.query(Institute).filter(Institute.id ==institute_id).first()
-        if not institute:
-            raise HTTPException(status_code=404, detail="Institute Not Found")
-        institute = institute(**instituteBase.__dict__)
+    institute = db.query(Institute).filter(Institute.id ==institute_id).first()
+    if institute is None:
+        raise HTTPException(status_code=404, detail="Institute Not Found")
+    else:
+        for key, value in instituteBase.dict(exclude_unset=True).items():
+            setattr(institute, key, value)
         db.commit()
         db.refresh(institute)
         return succes_response(institute)
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=f"Error Occured: {e}")
 
