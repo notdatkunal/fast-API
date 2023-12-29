@@ -60,7 +60,7 @@ async def delete_notice(notice_id:int,db:Session = Depends(get_db),current_user:
     notice = db.query(Notice).filter(Notice.notice_id == notice_id).first()
     if notice is None:
         raise HTTPException(status_code=404,detail="Notice not Found.")
-    notice.is_deleted = True
+    db.delete(notice)
     db.commit()
     return succes_response(jsonable_encoder(notice))
     
