@@ -54,18 +54,13 @@ async def get_notice_by_id(notice_id:int,db:Session = Depends(get_db),current_us
         raise HTTPException(status_code=500, detail=f"No ID Found")
     
 # update_notice
-@router.put("/update_notice/")
-async def update_notice(notice_id:int,notice:NoticeBase,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
-    try:
-        notice_data = db.query(Notice).filter(Notice.notice_id == notice_id).first()
-        if notice_data is not None:
-            for key ,value in notice.dict(exclude_unset=True).items():
-                setattr(notice_data, key ,value)
-            db.commit()
-            db.refresh(notice_data)    
-            return succes_response(notice_data)
-        else:
-            raise HTTPException(status_code=404, detail="Notice not found")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error While Updating: {str(e)}")
+
+@router.delete("/delete_notice/")
+async def delete_notice(notice_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
+    notice = db.query(Notice).filter(Notice.notice_id == notice_id).first()
+    if notice is None:
+        raise HTTPException(status_code=404,detail="Notice not Found.")
+    notice.is_deleted = True
+    db.commit()
+    return succes_response(jsonable_encoder(notice))
     

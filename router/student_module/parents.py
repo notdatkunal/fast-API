@@ -82,3 +82,14 @@ async def update_student(student_id: int, student: ParentBase, db: Session = Dep
         return succes_response(parent_data)
     else:
         raise HTTPException(status_code=404, detail="Parent not found")
+
+
+@router.delete("/delete/{parent_id}")
+async def delete_parent(parent_id: int, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
+    parent_data = db.query(Parents).filter(Parents.parent_id == parent_id).first()
+    if parent_data is not None:
+        db.delete(parent_data)
+        db.commit()
+        return succes_response("Parent deleted successfully")
+    else:
+        raise HTTPException(status_code=404, detail="Parent not found")
