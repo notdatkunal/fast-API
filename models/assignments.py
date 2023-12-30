@@ -8,8 +8,8 @@ class Assignments(BASE):
     class_id = Column(Integer, ForeignKey("tbl_classes.class_id", ondelete="CASCADE"), nullable=True, name='class_id')
     section_id = Column(Integer, ForeignKey("tbl_sections.section_id", ondelete="CASCADE"), nullable=True, name='section_id')
     assignment_Date = Column(Date, nullable=False, name='assignment_date')
-    assignment_title = Column(String(100), nullable=False, name='assignment_title')
-    assignment_details = Column(String(500), nullable=False, name='assignment_details')
+    assignment_title = Column(String(1000), nullable=False, name='assignment_title')
+    assignment_details = Column(String(5000), nullable=False, name='assignment_details')
     assignment_due_date = Column(Date, nullable=False, name='assignment_due_date')
     is_deleted = Column(Boolean, default=False, name='is_deleted')
 

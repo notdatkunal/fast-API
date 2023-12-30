@@ -7,22 +7,22 @@ class Staff(BASE):
         Integer, ForeignKey("institute.id", ondelete="CASCADE"), nullable=True
     )
     staff_id = Column(Integer, primary_key=True, autoincrement=True)
-    employee_id = Column(String(30))
-    staff_name = Column(String(30))
-    photo = Column(String(255), nullable=True)
-    role = Column(String(30), nullable=True)
-    address = Column(String(100), nullable=True)
-    gender = Column(String(10), nullable=True)
-    experience = Column(String(30), nullable=True)
-    specialization = Column(String(30), nullable=True)
-    experience = Column(String(30), nullable=True)
-    phone_number = Column(String(10), nullable=False)
-    email = Column(String(50), nullable=False)
-    blood_group = Column(String(10), nullable=True)
+    employee_id = Column(String(1000))
+    staff_name = Column(String(1000))
+    photo = Column(BLOB(3000), nullable=True)
+    role = Column(String(1000), nullable=True)
+    address = Column(Text(3000), nullable=True)
+    gender = Column(String(1000), nullable=True)
+    experience = Column(String(1000), nullable=True)
+    specialization = Column(Text(3000), nullable=True)
+    experience = Column(Text(3000), nullable=True)
+    phone_number = Column(String(3000), nullable=False)
+    email = Column(String(1000), nullable=False)
+    blood_group = Column(String(1000), nullable=True)
     date_of_birth = Column((Date), nullable=True)
     joining_date = Column((Date), nullable=True)
-    salary = Column(String(30), nullable=True)
-    slug = Column(String(255), unique=False)
+    salary = Column(String(1000), nullable=True)
+    slug = Column(String(1000), unique=False)
     is_deleted = Column(Boolean, default=False)
 
     # foreign keys
@@ -35,11 +35,11 @@ class Staff(BASE):
 class Staff_Payroll(BASE):
     __tablename__ = "tbl_staff_payroll"
     payroll_id = Column(Integer, primary_key=True, autoincrement=True)
-    payroll_type = Column(String(10), nullable=True)
-    salary_amount = Column(String(10), nullable=True)
+    payroll_type = Column(String(1000), nullable=True)
+    salary_amount = Column(String(1000), nullable=True)
     payment_date = Column((Date), nullable=True)
-    payment_mode = Column(String(10), nullable=True)
-    payroll_details = Column(String(10), nullable=True)
+    payment_mode = Column(String(1000), nullable=True)
+    payroll_details = Column(Text(5000), nullable=True)
 
     # foreign keys
     staff_id = Column(

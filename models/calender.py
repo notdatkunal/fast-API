@@ -10,7 +10,7 @@ class Calender(BASE):
     subject_id = Column(Integer, ForeignKey("tbl_subjects.subject_id", ondelete="CASCADE"))
     staff_id = Column(Integer, ForeignKey("tbl_staffs.staff_id", ondelete="CASCADE"))
     
-    day = Column(String(20))
+    day = Column(String(2000))
     start_time = Column(Time)
     end_time = Column(Time)
     

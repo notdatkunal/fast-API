@@ -7,10 +7,10 @@ class Notice(BASE):
     institute_id = Column(Integer, ForeignKey('institute.id', ondelete="CASCADE"))
     notice_date = Column(Date)
     due_date = Column(Date)
-    notice_title = Column(String(500))
-    notice_description = Column(String(800))
-    recipient = Column(String(50))
-    notice_announced_by = Column(String(100))
+    notice_title = Column(Text(5000))
+    notice_description = Column(Text(5000))
+    recipient = Column(Text(5000))
+    notice_announced_by = Column(String(1000))
     is_deleted = Column(Boolean, default=False)
 
 class StudentNotice(Notice):
