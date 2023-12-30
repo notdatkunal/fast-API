@@ -8,7 +8,7 @@ from router.student_module import student,parents
 from router.transport_module import stops,transports
 from router.staffs_module import staff,staff_payrole
 from router.users import user,login
-from router.notice_module import notice,student_notice
+from router.notice_module import notice
 from router.assignments import assignment
 from router.calender import calender
 from router.grade import grade
@@ -113,11 +113,6 @@ app.include_router(
    student.router,
    prefix="/Students",
    tags=['Students'],
-)
-app.include_router(
-   student_notice.router,
-   prefix="/StudentNotice",
-   tags=['StudentNotice'],
 )
 # ------------------------------------------Subjects ---------------------------------------------------------
 app.include_router(

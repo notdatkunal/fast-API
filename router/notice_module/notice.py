@@ -18,8 +18,17 @@ class NoticeBase(BaseModel):
     is_deleted: bool = Field(default=False)
     institute_id:int
     institute_id = Column(Integer,ForeignKey("institute.id",ondelete="CASCADE"))
-    # create link from wher intitute id will come
-
+class StudentNoticeBase(BaseModel):
+    student_id:int
+    notice_date: date = Field(default_factory=date.today)
+    due_date: date = Field(default_factory=date.today)
+    notice_title: str
+    notice_description: str
+    recipient: str
+    notice_announced_by: str
+    is_deleted: bool = Field(default=False)
+    institute_id:int
+    institute_id = Column(Integer,ForeignKey("institute.id",ondelete="CASCADE"))
 # create notice
 @router.post("/create_notice/")
 async def create_notice(notice:NoticeBase,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
@@ -54,6 +63,20 @@ async def get_notice_by_id(notice_id:int,db:Session = Depends(get_db),current_us
         raise HTTPException(status_code=500, detail=f"No ID Found")
     
 # update_notice
+@router.put("/update_notice/")
+async def update_notice(notice_id:int,notice:NoticeBase,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)): 
+    notice_instance = db.query(Notice).filter(Notice.notice_id == notice_id).first()
+    if notice_instance is None:
+        raise HTTPException(status_code=404,detail="Notice not Found.")
+    try:
+        for var, value in vars(notice).items():
+            setattr(notice_instance, var, value) if value else None
+        db.commit()
+        db.refresh(notice_instance)
+        return succes_response(jsonable_encoder(notice_instance))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error While Updating: {str(e)}")
+
 
 @router.delete("/delete_notice/")
 async def delete_notice(notice_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
@@ -63,6 +86,8 @@ async def delete_notice(notice_id:int,db:Session = Depends(get_db),current_user:
     db.delete(notice)
     db.commit()
     return succes_response(jsonable_encoder(notice))
+
+
 
 
 
