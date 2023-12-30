@@ -40,8 +40,6 @@ class Staff_Payroll(BASE):
     payment_date = Column((Date), nullable=True)
     payment_mode = Column(String(1000), nullable=True)
     payroll_details = Column(Text(5000), nullable=True)
-
-    # foreign keys
     staff_id = Column(
         Integer, ForeignKey("tbl_staffs.staff_id", ondelete="CASCADE"), nullable=True
     )
