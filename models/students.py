@@ -8,15 +8,15 @@ class Student(BASE):
     institute_id = Column(Integer,ForeignKey("institute.id",ondelete="CASCADE"),nullable=True)
     student_id = Column(Integer, primary_key=True, autoincrement=True)
     student_name = Column(String(255), nullable=False)
-    gender = Column(String(1000))
+    gender = Column(String(255))
     date_of_birth = Column(Date)
     blood_group = Column(String(100))
-    address = Column(Text(1000),nullable=True)
+    address = Column(Text(255),nullable=True)
     phone_number = Column(String(100))
-    email = Column(Text(5000))
+    email = Column(String(255))
     admission_date = Column(Date)
     roll_number = Column(String(255))
-    photo = Column(BLOB,nullable=True)
+    photo = Column(String(255),nullable=True)
     slug = Column(String(255),unique=True)
 
     # foreign keys
@@ -37,7 +37,7 @@ class Parents(BASE):
     relation_with_student = Column(String(255))
     parent_address = Column(Text(5000),nullable=True)
     parent_profession = Column(String(255),nullable=True)
-    photo = Column(BLOB(3000),nullable=True)
+    photo = Column(String(1000),nullable=True)
 
     # Foreign Keys
     student_id = Column(Integer,ForeignKey("tbl_students.student_id",ondelete="CASCADE"),nullable=True)
