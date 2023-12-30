@@ -40,6 +40,11 @@ async def create_transport(trans_data:TransportBase,db:db_dependency,current_use
 async def get_all_transports(db:db_dependency,current_user: str = Depends(is_authenticated)):
     return jsonable_encoder(db.query(tbl_transports).all())
 
+@router.get("/get_all_transports_by_institute/",description="get all transport by institute",status_code=200)
+async def get_all_transports_by_institute(institute_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
+    transport_data = ModelManager.get_data_by_institute(db.query(tbl_transports),tbl_transports,institute_id)
+    return jsonable_encoder(transport_data)
+
 
 # update api code for  transpotation 
 @router.put("/update_transport/",description="update transport Here",status_code=200)
