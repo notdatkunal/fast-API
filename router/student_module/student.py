@@ -7,7 +7,7 @@ from models.students import Student
 from models import Classes,Transport,Sections
 from models.manager import ModelManager
 from router.utility import succes_response
-
+from sqlalchemy.orm import joinedload,Load,load_only
 router = APIRouter()
 
 # student base model
@@ -17,8 +17,9 @@ class StudentBase(BaseModel):
     gender :str = Field(min_length=2)
     date_of_birth :date = Field(default_factory=date.today)
     blood_group :str
+    roll_number :str
     address :Optional[str]
-    phone_number :str = Field(min_length=10)
+    phone_number :str = Field(min_length=10,max_length=10)
     email :Optional[str]
     admission_date :date
     photo :str
@@ -34,38 +35,23 @@ def generate_slug(student_name:str,db):
             slug = slug + str(uuid.uuid4())[:6]
         else:
             return slug
-        
-# genarate rollnumber using student class and section and institute id
-def generate_roll_number(class_id: int, section_id: int, institute_id: int, db):
-    class_name = db.query(Classes).get(class_id).class_name.split(" ")[-1]
-    section_name = db.query(Sections).get(section_id).section_name.split(" ")[-1]
-    last_roll_number = db.query(Student).filter(
-        Student.class_id == class_id,
-        Student.section_id == section_id,
-        Student.institute_id == institute_id
-    ).order_by(Student.student_id.desc()).first()
-
-    if last_roll_number is None:
-        last_roll_number = 1
-    else:
-        # Extract the roll number from the last_roll_number object
-        last_roll_number = int(last_roll_number.roll_number.split('-')[-1])
-
-    roll_number = f"{institute_id}-{class_name}-{section_name}-{last_roll_number + 1}"
-
-    # Ensure the generated roll number is unique
-    while db.query(Student).filter(Student.roll_number == roll_number).first():
-        last_roll_number += 1
-        roll_number = f"{institute_id}-{class_name}-{section_name}-{last_roll_number}"
-
-    return roll_number
 
 # geting all student according to institute id
 @router.get("/get_students_by_intitute/",description="get all the students by institute id")
 async def get_all_students( institute_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
-    students = ModelManager.get_student_data_by_institute(db.query(Student),institute_id)
-    return jsonable_encoder(students)
+    student_data = (
+        db.query(Student)
+        .join(Classes, Student.class_id == Classes.class_id)
+        .join(Sections, Student.section_id == Sections.section_id)
+        .options(joinedload(Student.classes).load_only(Classes.class_name))
+        .options(joinedload(Student.sections).load_only(Sections.section_name))
+        .filter(Student.institute_id == institute_id and Student.is_deleted == False)
+        .all()
+    )
+    return jsonable_encoder(student_data)
 
+
+# geting all student according to institute id
 @router.get("/get_students_by_field/{field_name}/{field_value}/")
 async def get_all_students_by_field(field_name:str,field_value:str,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     student_model = Student
@@ -81,7 +67,6 @@ async def create_student(student: StudentBase, db: Session = Depends(get_db),cur
         # Create a new Student instance with the provided data
         new_student = Student(**student.dict())
         new_student.slug = generate_slug(student.student_name,db)
-        new_student.roll_number = generate_roll_number(student.class_id,student.section_id,student.institute_id,db)
         # Add, commit, and refresh the new student
         db.add(new_student)
         db.commit()

@@ -3,8 +3,12 @@ import sys
 sys.path.append("..")
 from router.basic_import import *
 from models.assignments import Assignments
+from models.classes import Classes,Sections
 from router.utility import succes_response
 from sqlalchemy import Column,ForeignKey,Integer
+from sqlalchemy.orm import joinedload,Load,load_only
+
+
 router = APIRouter()
 # base models
 class AssignmentsBase(BaseModel):
@@ -35,9 +39,17 @@ async def create_assignment(assignment:AssignmentsBase,db:Session = Depends(get_
 
 # get_assignments_institute_wise
 @router.get("/get_assignments_institute/")
-async def get_assignments_institute_wise(institution_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
-    assignments = ModelManager.get_data_by_institute(db.query(Assignments),Assignments,institution_id)
-    return jsonable_encoder(assignments)
+async def get_assignments_institute_wise(institution_id: int, db: Session = Depends(get_db), current_user: str = Depends(is_authenticated)):
+    assignment_data = (
+        db.query(Assignments)
+        .join(Classes, Assignments.class_id == Classes.class_id)
+        .join(Sections, Assignments.section_id == Sections.section_id)
+        .options(joinedload(Assignments.classes).load_only(Classes.class_name))
+        .options(joinedload(Assignments.sections).load_only(Sections.section_name))
+        .filter(Assignments.institute_id == institution_id, Assignments.is_deleted == False)
+        .all()
+    )
+    return jsonable_encoder(assignment_data)
 
 # get_assignment_by_field
 @router.get("/get_assignment_by_field/{field_name}/{field_value}/")
@@ -81,3 +93,14 @@ async def delete_assignment(assignment_id:int,db:Session = Depends(get_db),curre
         return succes_response(assignment_data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Assignment not found")
+    
+
+# get_assignment_for_student_tab
+@router.get("/get_assignment_for_student_tab/")
+async def get_assignment_for_student_tab(class_id:int,section_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
+    if db.query(Classes).get(class_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Class not found")
+    if db.query(Sections).get(section_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Section not found")
+    assignments_data = ModelManager.get_assignment_for_student_tab(class_id,section_id,db)
+    return jsonable_encoder(assignments_data)

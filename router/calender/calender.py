@@ -59,7 +59,7 @@ async def get_calender_by_class_and_section(class_id:int,section_id:int,db:db_de
         calender = db.query(Calender).filter(
             Calender.class_id == class_id,
             Calender.section_id == section_id
-        ).all().order_by(Calender.day)
+        ).order_by(Calender.day).all()
         if calender is not None:
             return succes_response(calender)
         else:
@@ -72,7 +72,7 @@ async def get_calender_by_staff(staff_id:int,db:db_dependency,current_user: str 
     try:
         calender = db.query(Calender).filter(
             Calender.staff_id == staff_id
-        ).all().order_by(Calender.day)
+        ).order_by(Calender.day).all()
         if calender is not None:
             return succes_response(calender)
         else:

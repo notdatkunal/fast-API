@@ -28,13 +28,21 @@ async def create_payroll(payroll:StaffPayrollBase, db:Session = Depends(get_db),
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
 
-@router.get("/get_payroll_data/")
+@router.get("/get_payroll_data_by_staff/")
 async def get_payroll_data_by_id(staff_id:int, db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
-    payroll_data = db.query(staff_payroll_data).filter(staff_payroll_data.staff_id == staff_id).first()
+    payroll_data = db.query(staff_payroll_data).filter(staff_payroll_data.staff_id == staff_id).all()
     if payroll_data is not None:
         return succes_response(payroll_data)
     else:
         raise HTTPException(status_code=404, detail="Payroll not found")
+    
+@router.get("/get_payroll_by_id/")
+async def get_payroll(payroll_id:int, db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
+    payroll_data = db.query(staff_payroll_data).filter(staff_payroll_data.payroll_id == payroll_id).first()
+    if payroll_data is not None:
+        return succes_response(payroll_data)
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payroll not found")
 
 @router.put("/update_payroll/")
 async def update_staff(staff_id: int, staff: StaffPayrollBase, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
@@ -47,3 +55,4 @@ async def update_staff(staff_id: int, staff: StaffPayrollBase, db: Session = Dep
         return succes_response(payroll_data)
     else:
         raise HTTPException(status_code=404, detail="Payroll not found")
+    

@@ -24,6 +24,10 @@ class Student(BASE):
     section_id = Column(Integer,ForeignKey("tbl_sections.section_id",ondelete="CASCADE"),nullable=True)
     transport_id = Column(Integer,ForeignKey("tbl_transport.transport_id",ondelete="CASCADE"),nullable=True)
 
+    # relationships
+    classes = relationship("Classes",back_populates="students")
+    sections = relationship("Sections",back_populates="students")
+
 
 class Parents(BASE):
     __tablename__ = "tbl_parents"

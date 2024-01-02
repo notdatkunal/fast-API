@@ -1,9 +1,14 @@
 from alchmanager import ManagedQuery, BaseQueryManager
 # import all models
 from models.students import Student,Parents
+from models.assignments import Assignments
+from models.classes import Classes,Sections
 from models.classes import Classes
 from models.staffs import Staff
 from fastapi import HTTPException
+from sqlalchemy.orm import joinedload,Load,load_only
+from fastapi import status
+
 # create modelmanager for all models
 class ModelManager(BaseQueryManager):
 
@@ -39,4 +44,19 @@ class ModelManager(BaseQueryManager):
             return data
         except Exception as e:
             raise HTTPException(status_code=404, detail=str(e))
-        
+
+    @staticmethod
+    def get_assignment_for_student_tab(class_id:int,section_id:int,db:ManagedQuery):
+        try:
+            assignment_data = (
+                db.query(Assignments)
+                .join(Classes, Assignments.class_id == Classes.class_id)
+                .join(Sections, Assignments.section_id == Sections.section_id)
+                .options(joinedload(Assignments.classes).load_only(Classes.class_name))
+                .options(joinedload(Assignments.sections).load_only(Sections.section_name))
+                .filter(Assignments.class_id == class_id and Assignments.section_id == section_id and Assignments.is_deleted == False)
+                .all()
+            )
+            return assignment_data
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
