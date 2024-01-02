@@ -45,14 +45,26 @@ async def get_payroll(payroll_id:int, db:Session = Depends(get_db),current_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payroll not found")
 
 @router.put("/update_payroll/")
-async def update_staff(staff_id: int, staff: StaffPayrollBase, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
-    payroll_data = db.query(staff_payroll_data).filter(staff_payroll_data.staff_id == staff_id).first()
+async def update_staff(payroll_id: int, staff: StaffPayrollBase, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
+    payroll_data = db.query(staff_payroll_data).filter(staff_payroll_data.payroll_id == payroll_id).first()
     if payroll_data is not None:
         for key, value in staff.dict(exclude_unset=True).items(): 
             setattr(payroll_data, key, value)
         db.commit()
         db.refresh(payroll_data)
         return succes_response(payroll_data)
+    else:
+        raise HTTPException(status_code=404, detail="Payroll not found")
+
+
+@router.delete("/delete_payroll/")
+async def delete_staff(payroll_id: int, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
+    payroll_data = db.query(staff_payroll_data).filter(staff_payroll_data.payroll_id == payroll_id).first()
+    if payroll_data is not None:
+        staff_id = payroll_data.staff_id
+        db.delete(payroll_data)
+        db.commit()
+        return succes_response({"staff_id":staff_id})
     else:
         raise HTTPException(status_code=404, detail="Payroll not found")
     
