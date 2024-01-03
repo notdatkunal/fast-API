@@ -19,7 +19,7 @@ class ParentBaseExam(BaseModel):
     parent_exam_name: str
     start_date: date
     end_date: date
-    result_data: date
+    result_date: date
     class_id: int
     institute_id: int
     is_deleted: bool
@@ -31,7 +31,7 @@ class ParentBaseExam(BaseModel):
         return v
 
     @validator('result_data')
-    def result_data_validator(cls, v):
+    def result_date_validator(cls, v):
         if v < date.today():
             raise ValueError('Result date must be greater than today')
         return v 

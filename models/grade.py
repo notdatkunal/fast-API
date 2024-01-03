@@ -10,3 +10,6 @@ class Grades(BASE):
     percent_from = Column(BigInteger)
     percent_upto = Column(BigInteger)
     is_deleted = Column(Boolean, default=False)
+
+    # relationships
+    classes = relationship("Classes", back_populates="grades")

@@ -31,6 +31,8 @@ class Staff(BASE):
         ForeignKey("tbl_transport.transport_id", ondelete="CASCADE"),
         nullable=True,
     )
+    # relationships
+    calender = relationship("Calender", back_populates="staffs")
 
 class Staff_Payroll(BASE):
     __tablename__ = "tbl_staff_payroll"

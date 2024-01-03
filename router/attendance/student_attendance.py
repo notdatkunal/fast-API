@@ -33,6 +33,22 @@ class StudentAttendanceBase(BaseModel):
             raise ValueError('Attendance date must be valid')
         return v
 
+
+# basic attendance
+def get_student_attendance_by_filter(db=None,filter_column:str=None,filter_value:str=None):
+    try:
+        attendance_data = (
+            db.query(StudentAttendance)
+            .join(Student,StudentAttendance.student_id == Student.student_id)
+            .options(joinedload(StudentAttendance.student).load_only(Student.student_name))
+            .filter(getattr(StudentAttendance,filter_column) == filter_value and StudentAttendance.is_deleted == False)
+            .order_by(StudentAttendance.attendance_date.desc())
+            .all()
+        )
+        return attendance_data
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
 # create student attendance
 @router.post("/create_student_attendance/")
 async def create_student_attendance(attendance:StudentAttendanceBase,db:db_dependency,current_user: str = Depends(is_authenticated)):
@@ -48,6 +64,7 @@ async def create_student_attendance(attendance:StudentAttendanceBase,db:db_depen
         db.add(new_attendance)
         db.commit()
         db.refresh(new_attendance)
+        new_attendance = get_student_attendance_by_filter(db,"attendance_id",new_attendance.attendance_id)
         return succes_response(jsonable_encoder(new_attendance))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
@@ -65,27 +82,14 @@ async def get_all_student_attendance(db:db_dependency,current_user: str = Depend
 # get students attendance by institute id
 @router.get("/get_student_attendance_by_institute_id/")
 async def get_student_attendance_by_institute_id(institute_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
-    try:
-        attendance = db.query(StudentAttendance).filter(StudentAttendance.institute_id == institute_id).order_by(StudentAttendance.attendance_date.desc()).all()
-        return jsonable_encoder(attendance)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error While Getting: {str(e)}")
+    attendance_data = get_student_attendance_by_filter(db,"institute_id",institute_id)
+    return jsonable_encoder(attendance_data)
 
 
 # get student attendance by student id
 @router.get("/get_student_attendance_by_student_id/")
 async def get_student_attendance_by_student_id(student_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
-    try:
-        attendance = (
-            db.query(StudentAttendance)
-            .join(Student,StudentAttendance.student_id == Student.student_id)
-            .options(joinedload(StudentAttendance.student).load_only(Student.student_name))
-            .filter(StudentAttendance.student_id == student_id)
-            .order_by(StudentAttendance.attendance_date.desc())
-            .all()
-        )
-        return jsonable_encoder(attendance)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error While Getting: {str(e)}")
+    student_attendance = get_student_attendance_by_filter(db,"student_id",student_id)
+    return jsonable_encoder(student_attendance)
 
 

@@ -3,6 +3,7 @@ import sys
 sys.path.append("..")
 from router.basic_import import *
 from models.grade import Grades
+from models import Classes
 from router.utility import succes_response
 
 router = APIRouter()
@@ -16,6 +17,19 @@ class GradeBase(BaseModel):
     percent_upto: int
     is_deleted: bool = False
 
+# basic grade
+def get_grade_by_filter(db=None,filter_column:str=None,filter_value:str=None):
+    try:
+        grade_data = (
+            db.query(Grades)
+            .join(Classes, Grades.class_id == Classes.class_id)
+            .options(joinedload(Grades.classes).load_only(Classes.class_name))
+            .filter(getattr(Grades,filter_column) == filter_value and Grades.is_deleted == False)
+            .all()
+        )
+        return grade_data
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 # create grade
 @router.post("/create_grade/")
@@ -25,20 +39,21 @@ async def create_grade(grade:GradeBase,db:Session = Depends(get_db),current_user
         db.add(new_grade)
         db.commit()
         db.refresh(new_grade)
-        return succes_response(jsonable_encoder(new_grade))
+        grade = get_grade_by_filter(db,"grade_id",new_grade.grade_id)
+        return succes_response(jsonable_encoder(grade))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
 # get_grades_institute_wise
 @router.get("/get_grades_institute/")
 async def get_grades_institute_wise(institute_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
-    grades = ModelManager.get_data_by_institute(db.query(Grades),Grades,institute_id)
+    grades = get_grade_by_filter(db,"institute_id",institute_id)
     return jsonable_encoder(grades)
 
 # get_grade_by_field
 @router.get("/get_grade_by_field/{field_name}/{field_value}/")
 async def get_grade_by_field(field_name:str,field_value:str,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
-    grade = ModelManager.get_data_by_field(db.query(Grades),field_name,field_value,Grades)
+    grade = get_grade_by_filter(db,field_name,field_value)
     return jsonable_encoder(grade)
 
 # get_grade_by_id

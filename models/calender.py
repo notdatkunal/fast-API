@@ -13,4 +13,10 @@ class Calender(BASE):
     day = Column(String(2000))
     start_time = Column(Time)
     end_time = Column(Time)
+
+    # relationships
+    classes = relationship("Classes", back_populates="calender")
+    sections = relationship("Sections", back_populates="calender")
+    subjects = relationship("Subjects", back_populates="calender")
+    staffs = relationship("Staff", back_populates="calender")
     
