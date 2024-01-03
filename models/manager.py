@@ -3,7 +3,6 @@ from alchmanager import ManagedQuery, BaseQueryManager
 from models.students import Student,Parents
 from models.assignments import Assignments
 from models.classes import Classes,Sections
-from models.classes import Classes
 from models.staffs import Staff
 from fastapi import HTTPException
 from sqlalchemy.orm import joinedload,Load,load_only
@@ -21,11 +20,18 @@ class ModelManager(BaseQueryManager):
             raise HTTPException(status_code=404, detail=str(e))
     # -------student model manager----------------
     @staticmethod
-    def get_student_data_by_institute(query: ManagedQuery,institite_id: int) -> ManagedQuery:
+    def get_student_data(db:ManagedQuery,filter_column = None,filter_value = None):
         try:
-            data = query.filter(Student.institute_id == institite_id).all()
-            # data = query.filter(Student.institute_id == institite_id).all()
-            return data
+            student_data = (
+                db.query(Student)
+                .join(Classes, Student.class_id == Classes.class_id)
+                .join(Sections, Student.section_id == Sections.section_id)
+                .options(joinedload(Student.classes).load_only(Classes.class_name))
+                .options(joinedload(Student.sections).load_only(Sections.section_name))
+                .filter(getattr(Student,filter_column) == filter_value and Student.is_deleted == False)
+                .all()
+            )
+            return student_data
         except Exception as e:
             raise HTTPException(status_code=404, detail=str(e))
     # -------student model manager----------------

@@ -12,6 +12,8 @@ from router.notice_module import notice
 from router.assignments import assignment
 from router.calender import calender
 from router.grade import grade
+from router.attendance import student_attendance
+from router.exams import parent_exam
 from router.users.login import *
 app = FastAPI(
    title="GSM API",
@@ -66,6 +68,12 @@ app.include_router(
    prefix="/Classes",
    tags=['Classes'],
 )
+# ------------------------------------------Exams ---------------------------------------------------------
+app.include_router(
+   parent_exam.router,
+   prefix="/ParentExams",
+   tags=['ParentExams'],
+)
 # ------------------------------------------Grades ---------------------------------------------------------
 app.include_router(
    grade.router,
@@ -119,6 +127,12 @@ app.include_router(
    subjects.router,
    prefix="/Subjects",
    tags=['Subjects'],
+)
+# ------------------------------------------Student Attendance ---------------------------------------------------------
+app.include_router(
+   student_attendance.router,
+   prefix="/StudentAttendance",
+   tags=['StudentAttendance'],
 )
 # ------------------------------------------Transports ---------------------------------------------------------
 app.include_router(

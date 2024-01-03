@@ -10,4 +10,6 @@ from .notice import Notice,StudentNotice,StaffNotice
 from .users import Users
 from .calender import Calender
 from .grade import Grades
+from .attendance import StudentAttendance
+from .examination import ParentExam,Exam
 

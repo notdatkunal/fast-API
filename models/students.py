@@ -27,6 +27,7 @@ class Student(BASE):
     # relationships
     classes = relationship("Classes",back_populates="students")
     sections = relationship("Sections",back_populates="students")
+    student_attendance = relationship("StudentAttendance",back_populates="student")
 
 
 class Parents(BASE):

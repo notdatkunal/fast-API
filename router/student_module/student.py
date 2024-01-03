@@ -27,6 +27,8 @@ class StudentBase(BaseModel):
     class_id :int
     section_id :int
 
+
+
 # genarating slug using student name and student class
 def generate_slug(student_name:str,db):
     slug = student_name.replace(" ","-")
@@ -54,8 +56,7 @@ async def get_all_students( institute_id:int,db:Session = Depends(get_db),curren
 # geting all student according to institute id
 @router.get("/get_students_by_field/{field_name}/{field_value}/")
 async def get_all_students_by_field(field_name:str,field_value:str,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
-    student_model = Student
-    students = ModelManager.get_data_by_field(db.query(student_model),field_name,field_value,student_model)
+    students = ModelManager.get_student_data(db,field_name,field_value)
     return jsonable_encoder(students)
 
 
@@ -118,5 +119,18 @@ async def delete_student(student_id:int,db:Session = Depends(get_db),current_use
         db.delete(student_data)
         db.commit()
         return {"status": "200", "msg": "done", 'response':student_id}
+    else:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+
+
+from models.new_manage import StudentManager
+StudentModelManager = StudentManager(db_dependency)
+
+@router.get("/get_student_new")
+async def get_student_data_by_id(student_id:int):
+    student_data = StudentModelManager.get_data_field("student_id",student_id)
+    if student_data is not None:
+        return succes_response(student_data)
     else:
         raise HTTPException(status_code=404, detail="Student not found")

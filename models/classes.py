@@ -12,6 +12,7 @@ class Classes(BASE):
 
     students = relationship("Student", back_populates="classes")
     assignments = relationship("Assignments", back_populates="classes")
+    parent_exam = relationship("ParentExam", back_populates="classes")
 
 class Sections(BASE):
     __tablename__ = "tbl_sections"
@@ -23,6 +24,7 @@ class Sections(BASE):
 
     students = relationship("Student", back_populates="sections")
     assignments = relationship("Assignments", back_populates="sections")
+    
 
 class Subjects(BASE):
     __tablename__ = "tbl_subjects"
@@ -30,3 +32,4 @@ class Subjects(BASE):
     subject_name = Column(String(1000))
     class_id = Column(Integer,ForeignKey("tbl_classes.class_id",ondelete="CASCADE"))
     is_deleted = Column(Boolean,default=False)
+    exam = relationship("Exam", back_populates="subject")
