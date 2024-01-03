@@ -30,7 +30,7 @@ class ParentBaseExam(BaseModel):
             raise ValueError('End date must be greater than today')
         return v
 
-    @validator('result_data')
+    @validator('result_date')
     def result_date_validator(cls, v):
         if v < date.today():
             raise ValueError('Result date must be greater than today')
