@@ -121,17 +121,16 @@ async def get_calender_data_by_id(calender_id:int,db:db_dependency,current_user:
 
 
 @router.put("/update_calender/")
-async def update_calender(calender:CalenderBase,db:db_dependency,current_user: str = Depends(is_authenticated)):
+async def update_calender(calender_id:int,calender:CalenderBase,db:db_dependency,current_user: str = Depends(is_authenticated)):
+    calender_instance = db.query(Calender).filter(Calender.calender_id == calender_id).first()
+    if calender_instance is None:
+        raise HTTPException(status_code=404, detail="calender not found")
     try:
-        calender_instance = db.query(Calender).filter(Calender.calender_id == calender.calender_id).first()
-        if calender_instance is not None:
-            for key ,value in calender.dict(exclude_unset=True).items():
-                setattr(calender_instance, key ,value)
-            db.commit()
-            db.refresh(calender_instance)    
-            return succes_response(calender_instance)
-        else:
-            raise HTTPException(status_code=404, detail="Class not found")  
+        for key ,value in calender.dict(exclude_unset=True).items():
+            setattr(calender_instance, key ,value)
+        db.commit()
+        db.refresh(calender_instance)    
+        return succes_response(calender_instance)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     

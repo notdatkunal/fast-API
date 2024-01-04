@@ -9,13 +9,13 @@ from router.transport_module import stops,transports
 from router.staffs_module import staff,staff_payrole
 from router.users import user,login
 from router.notice_module import notice
-from router.assignments import assignment
+from router.assignments import assignment,assignment_sunmission
 from router.calender import calender
 from router.grade import grade
 from router.attendance import student_attendance
 from router.exams import parent_exam,exam
 from router.users.login import *
-
+from router import azure_blobs
 app = FastAPI(
    title="GSM API",
    description="GURUKUL A School Management System",
@@ -28,6 +28,11 @@ app.add_middleware(
    allow_credentials=True,
    allow_methods=["*"],
    allow_headers=["*"],
+)
+app.include_router(
+   azure_blobs.router,
+   prefix="/AzureBlobs",
+   tags=['AzureBlobs'],
 )
 
 #------------------------------------------LOGIN START ---------------------------------------------------------
@@ -55,7 +60,12 @@ app.include_router(
    prefix="/Assignments",
    tags=['Assignments'],
 )
-# ------------------------------------------Assignment ---------------------------------------------------------
+# ------------------------------------------Assignment Submission ---------------------------------------------------------
+app.include_router(
+   assignment_sunmission.router,
+   prefix="/AssignmentSubmission",
+   tags=['AssignmentSubmission'],
+)
 # ------------------------------------------Calender ---------------------------------------------------------
 app.include_router(
    calender.router,
