@@ -123,15 +123,23 @@ async def get_parent_exam_by_class_id(class_id:int,db:db_dependency,current_user
     if not check_intance_exist(id=class_id,model=Classes,db=db):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Class not found")
     try:
-        parent_exam = (
+        upcoming_parent_exam = (
             db.query(ParentExam)
             .join(Classes,ParentExam.class_id == Classes.class_id)
             .options(joinedload(ParentExam.classes).load_only(Classes.class_name))
-            .filter(ParentExam.class_id == class_id)
+            .filter(ParentExam.class_id == class_id,ParentExam.start_date > date.today())
             .order_by(ParentExam.start_date.desc())
             .all()
         )
-        return jsonable_encoder(parent_exam)
+        old_parent_exams = (
+            db.query(ParentExam)
+            .join(Classes,ParentExam.class_id == Classes.class_id)
+            .options(joinedload(ParentExam.classes).load_only(Classes.class_name))
+            .filter(ParentExam.class_id == class_id,ParentExam.start_date < date.today())
+            .order_by(ParentExam.start_date.desc())
+            .all()
+        )
+        return jsonable_encoder({"upcoming_parent_exam":upcoming_parent_exam,"old_parent_exams":old_parent_exams})
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Getting: {str(e)}")
     

@@ -25,7 +25,7 @@ class AssignmentSubmission(BASE):
     student_id = Column(Integer, ForeignKey("tbl_students.student_id", ondelete="CASCADE"), nullable=True, name='student_id')
     submission_date = Column(Date, nullable=False, name='submission_date')
     submission_details = Column(Text(5000), nullable=False, name='submission_details')
-    assignment_file = Column(String(1000), nullable=False, name='assignment_file')
+    assignment_file = Column(Text(1000), nullable=False, name='assignment_file')
     is_deleted = Column(Boolean, default=False, name='is_deleted')
     
     assignments = relationship("Assignments", back_populates="assignment_submission")
