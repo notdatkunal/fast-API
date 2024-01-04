@@ -13,8 +13,9 @@ from router.assignments import assignment
 from router.calender import calender
 from router.grade import grade
 from router.attendance import student_attendance
-from router.exams import parent_exam
+from router.exams import parent_exam,exam
 from router.users.login import *
+
 app = FastAPI(
    title="GSM API",
    description="GURUKUL A School Management System",
@@ -70,9 +71,9 @@ app.include_router(
 )
 # ------------------------------------------Exams ---------------------------------------------------------
 app.include_router(
-   parent_exam.router,
-   prefix="/ParentExams",
-   tags=['ParentExams'],
+   exam.router,
+   prefix="/Exams",
+   tags=['Exams'],
 )
 # ------------------------------------------Grades ---------------------------------------------------------
 app.include_router(
@@ -91,6 +92,12 @@ app.include_router(
    parents.router,
    prefix="/Parents",
    tags=['Parents'],
+)
+# ------------------------------------------Exams ---------------------------------------------------------
+app.include_router(
+   parent_exam.router,
+   prefix="/ParentExams",
+   tags=['ParentExams'],
 )
 # ------------------------------------------Sections ---------------------------------------------------------
 app.include_router(

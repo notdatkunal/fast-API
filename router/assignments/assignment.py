@@ -25,6 +25,23 @@ class AssignmentsBase(BaseModel):
     class_id = Column(Integer,ForeignKey("Tbl_Classes.class_id",ondelete="CASCADE"),nullable=True)
     section_id = Column(Integer,ForeignKey("Tbl_Sections.section_id",ondelete="CASCADE"),nullable=True)
 
+
+# basic assignment
+def get_assignment_by_filter(db=None,filter_column:str=None,filter_value:str=None):
+    try:
+        assignment_data = (
+            db.query(Assignments)
+            .join(Classes, Assignments.class_id == Classes.class_id)
+            .join(Sections, Assignments.section_id == Sections.section_id)
+            .options(joinedload(Assignments.classes).load_only(Classes.class_name))
+            .options(joinedload(Assignments.sections).load_only(Sections.section_name))
+            .filter(getattr(Assignments,filter_column) == filter_value and Assignments.is_deleted == False)
+            .all()
+        )
+        return assignment_data
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
 # create assignment
 @router.post("/create_assignment/")
 async def create_assignment(assignment:AssignmentsBase,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
@@ -102,5 +119,13 @@ async def get_assignment_for_student_tab(class_id:int,section_id:int,db:Session 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Class not found")
     if db.query(Sections).get(section_id) is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Section not found")
-    assignments_data = ModelManager.get_assignment_for_student_tab(class_id,section_id,db)
+    assignments_data = (
+        db.query(Assignments)
+        .join(Classes, Assignments.class_id == Classes.class_id)
+        .join(Sections, Assignments.section_id == Sections.section_id)
+        .options(joinedload(Assignments.classes).load_only(Classes.class_name))
+        .options(joinedload(Assignments.sections).load_only(Sections.section_name))
+        .filter(Assignments.class_id == class_id, Assignments.section_id == section_id, Assignments.is_deleted == False)
+        .all()
+    )
     return jsonable_encoder(assignments_data)

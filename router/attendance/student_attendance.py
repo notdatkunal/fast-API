@@ -48,6 +48,14 @@ def get_student_attendance_by_filter(db=None,filter_column:str=None,filter_value
         return attendance_data
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
+def get_student_attendance(student_id,db):
+    student_data =(
+        db.query(StudentAttendance)
+        .filter(StudentAttendance.student_id == student_id and StudentAttendance.student == "Absent")
+        .count()
+    )
+    return student_data
+
 
 # create student attendance
 @router.post("/create_student_attendance/")
@@ -58,13 +66,16 @@ async def create_student_attendance(attendance:StudentAttendanceBase,db:db_depen
         raise HTTPException(status_code=404, detail="Student not found")
     # deleteing student_roll_number from attendance
     del attendance.student_roll_number
+    # checking attendance is already taken or not
+    if db.query(StudentAttendance).filter(StudentAttendance.attendance_date == attendance.attendance_date).first() is not None:
+        raise HTTPException(status_code=status.HTTP_208_ALREADY_REPORTED, detail="Attendance already taken")
     try:
         new_attendance = StudentAttendance(**attendance.dict())
         new_attendance.student_id = student.student_id
         db.add(new_attendance)
         db.commit()
         db.refresh(new_attendance)
-        new_attendance = get_student_attendance_by_filter(db,"attendance_id",new_attendance.attendance_id)
+        new_attendance = get_student_attendance_by_filter(db,"id",new_attendance.id)
         return succes_response(jsonable_encoder(new_attendance))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
@@ -90,6 +101,7 @@ async def get_student_attendance_by_institute_id(institute_id:int,db:db_dependen
 @router.get("/get_student_attendance_by_student_id/")
 async def get_student_attendance_by_student_id(student_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
     student_attendance = get_student_attendance_by_filter(db,"student_id",student_id)
+    print(get_student_attendance(student_id,db))
     return jsonable_encoder(student_attendance)
 
 
