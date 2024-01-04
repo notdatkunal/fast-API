@@ -9,6 +9,7 @@ class Calender(BASE):
     section_id = Column(Integer, ForeignKey("tbl_sections.section_id", ondelete="CASCADE"))
     subject_id = Column(Integer, ForeignKey("tbl_subjects.subject_id", ondelete="CASCADE"))
     staff_id = Column(Integer, ForeignKey("tbl_staffs.staff_id", ondelete="CASCADE"))
+    is_deleted = Column(Boolean, default=False, name='is_deleted')
     
     day = Column(String(2000))
     start_time = Column(Time)
