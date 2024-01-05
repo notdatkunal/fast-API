@@ -6,15 +6,16 @@ from router.basic_import import *
 from models.accounts import Accounts
 from models.institute import Institute
 from router.utility import succes_response
+
 # Accounts.metadata.create_all(bind=engine)
 
 router = APIRouter()
 
-class TranctionBase(Enum):
+class TranctionBase(str,Enum):
     Debit = "Debit"
     Credit = "Credit"
 
-class PaymentMode(Enum):
+class PaymentMode(str,Enum):
     Cash = "Cash"
     UPI = "UPI"
     Net_Banking_NEFT = "Net Banking-NEFT"
@@ -23,7 +24,7 @@ class PaymentMode(Enum):
     Cheque = "Cheque"
     Demand_Draft = "Demand Draft"
 
-class PaymentType(Enum):
+class PaymentType(str,Enum):
     Salary = "Salary"
     Fee_Collections = "Fee Collections"
     Expenditure = "Expenditure"
@@ -61,7 +62,7 @@ async def post_account_data(account:AccountBase,db:db_dependency,current_user: s
 
 # featching all the data in the json formate
 @router.get("/get_all_transaction_by_institute/")
-async def get_all_tractions_by_institute(institute_id:int,db :Session = Depends(get_db)):
+async def get_all_tractions_by_institute(institute_id:int,db :db_dependency,current_user: str = Depends(is_authenticated)):
     institute_data = db.query(Institute).filter(Institute.id == institute_id).first()
     if institute_data is None:
         raise HTTPException(status_code=404, detail="Institute not found")
@@ -73,7 +74,7 @@ async def get_all_tractions_by_institute(institute_id:int,db :Session = Depends(
 
 # geting perticular record 
 @router.get("/get_transaction_by_id/")
-async def get_transaction_by_id(account_id:int,db:Session = Depends(get_db)):
+async def get_transaction_by_id(account_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
     account_data = db.query(Accounts).filter(Accounts.account_id == account_id).first()
     if account_data is not None:
         return succes_response(account_data)
@@ -81,7 +82,7 @@ async def get_transaction_by_id(account_id:int,db:Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Transaction not found")
 
 @router.put("/adjust_transaction/")
-async def adjust_transaction(account_id:int,account:AccountBase,db:Session = Depends(get_db)):
+async def adjust_transaction(account_id:int,account:AccountBase,db:db_dependency,current_user: str = Depends(is_authenticated)):
     institute_data = db.query(Institute).filter(Institute.id == account.institution_id).first()
     if institute_data is None:
         raise HTTPException(status_code=404, detail="Institute not found")
@@ -99,7 +100,7 @@ async def adjust_transaction(account_id:int,account:AccountBase,db:Session = Dep
 
 
 @router.delete("/delete_transaction/")
-async def delete_transaction(account_id:int,db:Session = Depends(get_db)):
+async def delete_transaction(account_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
     account_data = db.query(Accounts).filter(Accounts.account_id == account_id).first()
     if account_data is None:
         raise HTTPException(status_code=404, detail="Transaction not found")

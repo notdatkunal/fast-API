@@ -86,7 +86,7 @@ async def get_calender_by_class_and_section(class_id:int,section_id:int,db:db_de
             .options(joinedload(Calender.sections).load_only(Sections.section_name))
             .options(joinedload(Calender.subjects).load_only(Subjects.subject_name))
             .options(joinedload(Calender.staffs).load_only(Staff.staff_name))
-            .filter(Calender.class_id == class_id , Calender.section_id == section_id , Calender.is_deleted == False)
+            .filter(Calender.class_id == class_id ,Calender.section_id == section_id ,Calender.is_deleted == False)
             .order_by(Calender.day).all()
         )
         if calender is not None:
