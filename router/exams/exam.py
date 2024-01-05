@@ -74,14 +74,14 @@ async def get_exam_by_exam_id(exam_id:int,db:db_dependency,current_user: str = D
 
 # update exam
 @router.put("/update_exam/")
-async def update_exam(exan_id:int,exam:ExamBase,db:db_dependency,current_user: str = Depends(is_authenticated)):
+async def update_exam(exam_id:int,exam:ExamBase,db:db_dependency,current_user: str = Depends(is_authenticated)):
     if db.query(ParentExam).filter(ParentExam.parent_exam_id == exam.parent_exam_id).first() is None:
             raise HTTPException(status_code=404, detail="Parent exam not found")
 
     if db.query(Subjects).filter(Subjects.subject_id == exam.subject_id).first() is None:
         raise HTTPException(status_code=404, detail="Subject not found")
 
-    exam_instance = db.query(Exam).filter(Exam.exam_id == exan_id).first()
+    exam_instance = db.query(Exam).filter(Exam.exam_id == exam_id).first()
     if exam_instance is None:
         raise HTTPException(status_code=404, detail="Exam not found")
     try:

@@ -6,7 +6,7 @@ from router import accounts,institute
 from router.classes_module import sections,subjects,classes
 from router.student_module import student,parents
 from router.transport_module import stops,transports
-from router.staffs_module import staff,staff_payrole
+from router.staffs_module import staff,staff_payrole,staff_documents
 from router.users import user,login
 from router.notice_module import notice
 from router.assignments import assignment,assignment_sunmission
@@ -120,6 +120,12 @@ app.include_router(
    staff.router,
    prefix="/Staff",
    tags=['Staff'],
+)
+# ------------------------------------------Staff Documents ---------------------------------------------------------
+app.include_router(
+   staff_documents.router,
+   prefix="/StaffDocuments",
+   tags=['StaffDocuments'],
 )
 # ------------------------------------------Staff Payrole ---------------------------------------------------------
 app.include_router(
