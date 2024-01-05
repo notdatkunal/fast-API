@@ -33,6 +33,7 @@ class Staff(BASE):
     )
     # relationships
     calender = relationship("Calender", back_populates="staffs")
+    staff_attendance = relationship("StaffAttendance", back_populates="staff")
 
 class Staff_Payroll(BASE):
     __tablename__ = "tbl_staff_payroll"
@@ -54,3 +55,4 @@ class StaffDocuments(BASE):
     document_file = Column(Text(5000), nullable=True)
     staff_id = Column(Integer, ForeignKey("tbl_staffs.staff_id", ondelete="CASCADE"), nullable=True)
     is_deleted = Column(Boolean, default=False)
+

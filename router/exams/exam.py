@@ -60,6 +60,17 @@ async def create_exam(exam:ExamBase,db:db_dependency,current_user: str = Depends
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
     
+
+# crete bulk exam
+@router.post("/create_bulk_exam/")
+async def create_bulk_exam(exams:List[ExamBase],db:db_dependency,current_user: str = Depends(is_authenticated)):
+    try:
+        db.add_all([Exam(**exam.dict()) for exam in exams])
+        db.commit()
+        return succes_response("Exams Created Successfully")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
 # get exam by parent exam id
 @router.get("/get_exam_by_parent_exam_id/")
 async def get_exam_by_parent_exam_id(parent_exam_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):

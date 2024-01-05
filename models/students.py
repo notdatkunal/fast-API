@@ -47,3 +47,13 @@ class Parents(BASE):
 
     # Foreign Keys
     student_id = Column(Integer,ForeignKey("tbl_students.student_id",ondelete="CASCADE"),nullable=True)
+
+
+
+class StudentsDocuments(BASE):
+    __tablename__ = "tbl_students_documents"
+    document_id = Column(Integer, primary_key=True, autoincrement=True)
+    document_name = Column(String(1000), nullable=True)
+    document_file = Column(Text(5000), nullable=True)
+    student_id = Column(Integer, ForeignKey("tbl_students.student_id", ondelete="CASCADE"), nullable=True)
+    is_deleted = Column(Boolean, default=False)

@@ -14,7 +14,7 @@ router = APIRouter()
 class AssignmentSubmissionBase(BaseModel):
     assignment_id: int
     student_id: int
-    submission_date: date =Field(default_factory=date.today)
+    submission_date: date = Field(default_factory=date.today)
     submission_details: str
     assignment_file: str
     is_deleted: bool = False

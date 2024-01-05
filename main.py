@@ -2,9 +2,10 @@ import regex
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 # importing of account router
-from router import accounts,institute
+from router import institute
+from router.account_module import accounts
 from router.classes_module import sections,subjects,classes
-from router.student_module import student,parents
+from router.student_module import student,parents,students_documents
 from router.transport_module import stops,transports
 from router.staffs_module import staff,staff_payrole,staff_documents
 from router.users import user,login
@@ -12,7 +13,7 @@ from router.notice_module import notice
 from router.assignments import assignment,assignment_sunmission
 from router.calender import calender
 from router.grade import grade
-from router.attendance import student_attendance
+from router.attendance import student_attendance,staff_attendance
 from router.exams import parent_exam,exam
 from router.users.login import *
 from router import azure_blobs
@@ -48,12 +49,11 @@ app.include_router(
    tags=['Institute'],
 )
 # ------------------------------------------ACCOUNTS START ---------------------------------------------------------
-# app.include_router(
-#    accounts.router,
-#    prefix="/Accounts",
-#    tags=['Accounts'],
-# )
-# ------------------------------------------ACCOUNTS END ---------------------------------------------------------
+app.include_router(
+   accounts.router,
+   prefix="/Accounts",
+   tags=['Accounts'],
+)
 # ------------------------------------------Assignment ---------------------------------------------------------
 app.include_router(
    assignment.router,
@@ -121,6 +121,12 @@ app.include_router(
    prefix="/Staff",
    tags=['Staff'],
 )
+# ------------------------------------------Staff Attendance ---------------------------------------------------------
+app.include_router(
+   staff_attendance.router,
+   prefix="/StaffAttendance",
+   tags=['StaffAttendance'],
+)
 # ------------------------------------------Staff Documents ---------------------------------------------------------
 app.include_router(
    staff_documents.router,
@@ -144,6 +150,12 @@ app.include_router(
    student.router,
    prefix="/Students",
    tags=['Students'],
+)
+# ------------------------------------------Students Documents ---------------------------------------------------------
+app.include_router(
+   students_documents.router,
+   prefix="/StudentsDocuments",
+   tags=['StudentsDocuments'],
 )
 # ------------------------------------------Subjects ---------------------------------------------------------
 app.include_router(

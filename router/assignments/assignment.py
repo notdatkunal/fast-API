@@ -50,6 +50,7 @@ async def create_assignment(assignment:AssignmentsBase,db:Session = Depends(get_
         db.add(new_assignment)
         db.commit()
         db.refresh(new_assignment)
+        new_assignment = get_assignment_by_filter(db,"id",new_assignment.id)
         return succes_response(jsonable_encoder(new_assignment))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
