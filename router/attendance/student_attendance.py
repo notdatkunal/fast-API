@@ -33,7 +33,6 @@ class StudentAttendanceBase(BaseModel):
             raise ValueError('Attendance date must be valid')
         return v
 
-
 # basic attendance
 def get_student_attendance_by_filter(db=None,filter_column:str=None,filter_value:str=None):
     try:
@@ -48,13 +47,25 @@ def get_student_attendance_by_filter(db=None,filter_column:str=None,filter_value
         return attendance_data
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
-def get_student_attendance(student_id,db):
-    student_data =(
+def get_student_attendance(student_id, db):
+    absent_count = (
         db.query(StudentAttendance)
-        .filter(StudentAttendance.student_id == student_id and StudentAttendance.student == "Absent")
+        .filter(StudentAttendance.student_id == student_id, StudentAttendance.attendance_status == "Absent")
         .count()
     )
-    return student_data
+    
+    total_attendance_count = (
+        db.query(StudentAttendance)
+        .filter(StudentAttendance.student_id == student_id)
+        .count()
+    )
+    if total_attendance_count > 0:
+        absent_percentage = (absent_count / total_attendance_count) * 100
+        present_percentage = 100 - absent_percentage
+        
+        return {"absent_percentage": absent_percentage, "present_percentage": present_percentage}
+    return {"absent_percentage": 0, "present_percentage": 0}
+
 
 
 # create student attendance
@@ -67,7 +78,7 @@ async def create_student_attendance(attendance:StudentAttendanceBase,db:db_depen
     # deleteing student_roll_number from attendance
     del attendance.student_roll_number
     # checking attendance is already taken or not
-    if db.query(StudentAttendance).filter(StudentAttendance.attendance_date == attendance.attendance_date).first() is not None:
+    if db.query(StudentAttendance).filter(StudentAttendance.attendance_date == attendance.attendance_date,StudentAttendance.student_id == student.student_id).first() is not None:
         raise HTTPException(status_code=status.HTTP_208_ALREADY_REPORTED, detail="Attendance already taken")
     try:
         new_attendance = StudentAttendance(**attendance.dict())
@@ -101,7 +112,10 @@ async def get_student_attendance_by_institute_id(institute_id:int,db:db_dependen
 @router.get("/get_student_attendance_by_student_id/")
 async def get_student_attendance_by_student_id(student_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
     student_attendance = get_student_attendance_by_filter(db,"student_id",student_id)
-    print(get_student_attendance(student_id,db))
-    return jsonable_encoder(student_attendance)
+    payload = {
+        "student_attendance":student_attendance,
+        "student_attendance_percentage":get_student_attendance(student_id, db),
+    }
+    return jsonable_encoder(payload)
 
 

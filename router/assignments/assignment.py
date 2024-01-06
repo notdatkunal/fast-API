@@ -2,7 +2,7 @@ from datetime import date
 import sys
 sys.path.append("..")
 from router.basic_import import *
-from models.assignments import Assignments
+from models.assignments import Assignments,AssignmentSubmission
 from models.classes import Classes,Sections
 from router.utility import succes_response
 from sqlalchemy import Column,ForeignKey,Integer
@@ -50,7 +50,7 @@ async def create_assignment(assignment:AssignmentsBase,db:Session = Depends(get_
         db.add(new_assignment)
         db.commit()
         db.refresh(new_assignment)
-        new_assignment = get_assignment_by_filter(db,"id",new_assignment.id)
+        new_assignment = get_assignment_by_filter(db,"id",new_assignment.id)[0]
         return succes_response(jsonable_encoder(new_assignment))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
@@ -120,8 +120,10 @@ async def get_assignment_for_student_tab(class_id:int,section_id:int,db:Session 
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Class not found")
     if db.query(Sections).get(section_id) is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Section not found")
-    assignments_data = (
+    # Submitted Assignments
+    submitted_assignments_data = (
         db.query(Assignments)
+        .join(AssignmentSubmission, Assignments.id == AssignmentSubmission.assignment_id)
         .join(Classes, Assignments.class_id == Classes.class_id)
         .join(Sections, Assignments.section_id == Sections.section_id)
         .options(joinedload(Assignments.classes).load_only(Classes.class_name))
@@ -129,4 +131,20 @@ async def get_assignment_for_student_tab(class_id:int,section_id:int,db:Session 
         .filter(Assignments.class_id == class_id, Assignments.section_id == section_id, Assignments.is_deleted == False)
         .all()
     )
-    return jsonable_encoder(assignments_data)
+
+    # Unsubmitted Assignments
+    unsubmitted_assignments_data = (
+        db.query(Assignments)
+        .join(Classes, Assignments.class_id == Classes.class_id)
+        .join(Sections, Assignments.section_id == Sections.section_id)
+        .options(joinedload(Assignments.classes).load_only(Classes.class_name))
+        .options(joinedload(Assignments.sections).load_only(Sections.section_name))
+        .filter(Assignments.class_id == class_id, Assignments.section_id == section_id, Assignments.is_deleted == False)
+        .filter(~Assignments.id.in_(db.query(AssignmentSubmission.assignment_id).subquery()))
+        .all()
+    )
+    payload = {
+        "submitted_assignments": submitted_assignments_data,
+        "unsubmitted_assignments": unsubmitted_assignments_data,
+    }
+    return jsonable_encoder(payload)

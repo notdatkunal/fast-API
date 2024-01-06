@@ -39,7 +39,7 @@ async def create_grade(grade:GradeBase,db:Session = Depends(get_db),current_user
         db.add(new_grade)
         db.commit()
         db.refresh(new_grade)
-        grade = get_grade_by_filter(db,"grade_id",new_grade.grade_id)
+        grade = get_grade_by_filter(db,"grade_id",new_grade.grade_id)[0]
         return succes_response(jsonable_encoder(grade))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")

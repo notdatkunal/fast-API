@@ -1,4 +1,4 @@
-from fastapi import APIRouter, File, UploadFile, HTTPException,Form
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException,Form
 from fastapi.responses import JSONResponse
 import os
 from io import BytesIO
@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from azure.storage.blob import BlobServiceClient,BlobSasPermissions,generate_blob_sas
 from pathlib import Path
 from pydantic import BaseModel
+from .basic_import import is_authenticated
 
 router = APIRouter()
 
@@ -30,7 +31,7 @@ async def create_container(content:bytes = None,file_name:str=None,location:str=
 
 # FastAPI route for file upload
 @router.post("/upload_file/")
-async def upload_file(file: UploadFile,location:str=Form(...)):
+async def upload_file(file: UploadFile,location:str=Form(...),current_user: str = Depends(is_authenticated)):
     try:
         content = file.file.read()
         file_name = file.filename
