@@ -34,7 +34,7 @@ def get_student_filter_query(db=None,filter_column:str=None,filter_value:str=Non
             .join(Sections, Student.section_id == Sections.section_id)
             .options(joinedload(Student.classes).load_only(Classes.class_name))
             .options(joinedload(Student.sections).load_only(Sections.section_name))
-            .filter(getattr(Student,filter_column) == filter_value,Student.is_deleted == False)
+            .filter(getattr(Student,filter_column) == filter_value)
             .all()
         )
         return student_data

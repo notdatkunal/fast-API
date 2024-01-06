@@ -18,7 +18,6 @@ class Student(BASE):
     roll_number = Column(String(255))
     photo = Column(String(255),nullable=True)
     slug = Column(String(255),unique=True)
-
     # foreign keys
     class_id = Column(Integer,ForeignKey("tbl_classes.class_id",ondelete="CASCADE"),nullable=True)
     section_id = Column(Integer,ForeignKey("tbl_sections.section_id",ondelete="CASCADE"),nullable=True)
