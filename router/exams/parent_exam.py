@@ -37,7 +37,7 @@ class ParentBaseExam(BaseModel):
         return v 
     @validator('start_date')
     def start_date_validator(cls, v):
-        if v < date.today():
+        if v <= date.today():
             raise ValueError('Start date must be greater than today')
         return v
     
