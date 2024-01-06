@@ -94,6 +94,7 @@ async def update_assignment(assignment_id:int,assignment:AssignmentsBase,db:Sess
                 setattr(assignment_data, key ,value)
             db.commit()
             db.refresh(assignment_data)    
+            new_assignment = get_assignment_by_filter(db,"id",assignment_data.id)[0]
             return succes_response(assignment_data)
         else:
             raise HTTPException(status_code=404, detail="Assignment not found")
