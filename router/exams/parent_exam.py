@@ -127,7 +127,7 @@ async def get_parent_exam_by_class_id(class_id:int,db:db_dependency,current_user
             db.query(ParentExam)
             .join(Classes,ParentExam.class_id == Classes.class_id)
             .options(joinedload(ParentExam.classes).load_only(Classes.class_name))
-            .filter(ParentExam.class_id == class_id,ParentExam.start_date > date.today())
+            .filter(ParentExam.class_id == class_id,ParentExam.start_date >= date.today())
             .order_by(ParentExam.start_date.desc())
             .all()
         )

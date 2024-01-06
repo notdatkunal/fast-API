@@ -11,7 +11,7 @@ router = APIRouter()
 # base models
 class GradeBase(BaseModel):
     institute_id:int
-    class_id:int
+    class_id:List[int]
     grade_name:str = Field(min_length=1)
     percent_from: int
     percent_upto: int
