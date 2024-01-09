@@ -49,13 +49,24 @@ def get_staff_attendance_by_filter(db=None,filter_column:str=None,filter_value:s
         raise HTTPException(status_code=404, detail=str(e))
     
 
-def get_staff_attendance(staff_id,db):
-    staff_data =(
+def get_staff_attendance(staff_id, db):
+    absent_count = (
         db.query(StaffAttendance)
-        .filter(StaffAttendance.staff_id == staff_id and StaffAttendance.staff == "Absent")
+        .filter(StaffAttendance.staff_id == staff_id, StaffAttendance.attendance_status == "Absent")
         .count()
     )
-    return staff_data
+    
+    total_attendance_count = (
+        db.query(StaffAttendance)
+        .filter(StaffAttendance.staff_id == staff_id)
+        .count()
+    )
+    if total_attendance_count > 0:
+        absent_percentage = (absent_count / total_attendance_count) * 100
+        present_percentage = 100 - absent_percentage
+        
+        return {"absent_percentage": absent_percentage, "present_percentage": present_percentage}
+    return {"absent_percentage": 0, "present_percentage": 0}
 
 
 # create staff attendance
@@ -102,5 +113,9 @@ async def get_staff_attendance_by_institute_id(institute_id:int,db:db_dependency
 @router.get("/get_staff_attendance_by_staff_id/")
 async def get_staff_attendance_by_staff_id(staff_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
     staff_attendance = get_staff_attendance_by_filter(db,"staff_id",staff_id)
-    print(get_staff_attendance(staff_id,db))
-    return jsonable_encoder(staff_attendance)
+    payload = {
+        "staff_attendance":staff_attendance,
+        "staff_attendance_percentage":get_staff_attendance(staff_id,db)
+    }
+    return jsonable_encoder(payload)
+

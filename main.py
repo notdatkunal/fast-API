@@ -15,6 +15,7 @@ from router.calender import calender
 from router.grade import grade
 from router.attendance import student_attendance,staff_attendance
 from router.exams import parent_exam,exam
+from router.fee_module import fees
 from router.users.login import *
 from router import azure_blobs
 app = FastAPI(
@@ -84,6 +85,12 @@ app.include_router(
    prefix="/Exams",
    tags=['Exams'],
 )
+# ------------------------------------------Fees ---------------------------------------------------------
+app.include_router(
+   fees.router,
+   prefix="/Fees",
+   tags=['Fees'],
+)
 # ------------------------------------------Grades ---------------------------------------------------------
 app.include_router(
    grade.router,
@@ -150,6 +157,12 @@ app.include_router(
    prefix="/Students",
    tags=['Students'],
 )
+# ------------------------------------------Student Attendance ---------------------------------------------------------
+app.include_router(
+   student_attendance.router,
+   prefix="/StudentAttendance",
+   tags=['StudentAttendance'],
+)
 # ------------------------------------------Students Documents ---------------------------------------------------------
 app.include_router(
    students_documents.router,
@@ -161,12 +174,6 @@ app.include_router(
    subjects.router,
    prefix="/Subjects",
    tags=['Subjects'],
-)
-# ------------------------------------------Student Attendance ---------------------------------------------------------
-app.include_router(
-   student_attendance.router,
-   prefix="/StudentAttendance",
-   tags=['StudentAttendance'],
 )
 # ------------------------------------------Transports ---------------------------------------------------------
 app.include_router(

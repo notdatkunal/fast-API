@@ -22,7 +22,6 @@ def generate_slug(class_name,db):
         else:
             return slug
 
-
 @router.post("/create_class/")
 async def create_class(class_data: ClassBase, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:

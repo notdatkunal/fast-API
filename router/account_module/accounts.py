@@ -4,8 +4,10 @@ import sys
 sys.path.append("..")
 from router.basic_import import *
 from models.accounts import Accounts
+from models.fees import Fees
 from models.institute import Institute
 from router.utility import succes_response
+Fees.metadata.create_all(bind=engine)
 
 # Accounts.metadata.create_all(bind=engine)
 
@@ -39,11 +41,10 @@ class AccountBase(BaseModel):
     transaction_type: TranctionBase
     payment_mode: PaymentMode
     payment_type: PaymentType
-    particular_name: str
+    particular_name:str
     transaction_amount: float = Field(min_value=0)
-    description: str
-    transaction_id: str
-    transaction_reference: str
+    description: Optional[str] = None
+    transaction_reference:Optional[str] =  None
     net_balance: float = Field(min_value=0)
 
 
