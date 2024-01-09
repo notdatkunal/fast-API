@@ -18,17 +18,11 @@ class FeesBase(BaseModel):
     fee_admission: float
     installment_id: int
 
-    class Config:
-        orm_mode = True
 
 # base models of installment
 class InstallmentBase(BaseModel):
     installment_name: str
     installment_number: int
-
-    class Config:
-        orm_mode = True
-
 
 def create_association(fee_id, installment_id, db):
     try:
@@ -97,8 +91,8 @@ async def get_all_installments(db:db_dependency,current_user: str = Depends(is_a
 async def get_all_fees(db:db_dependency,current_user: str = Depends(is_authenticated)):
     try:
         fees_obj = (
-                db.query(Fees).
-                join(fees_installments_association)
+                db.query(Fees)
+                .join(fees_installments_association)
                 .join(ClassInstallment)
                 .options(contains_eager(Fees.class_installments))
                 .all()
@@ -108,6 +102,86 @@ async def get_all_fees(db:db_dependency,current_user: str = Depends(is_authentic
         return fees_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving fees: {e}")
+
+# get all fees by institute id
+@router.get("/get_all_fees_by_institute/")
+async def get_all_fees_by_institute(institution_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
+    try:
+        fees_obj = (
+                db.query(Fees)
+                .join(fees_installments_association)
+                .join(ClassInstallment)
+                .filter(Fees.institution_id == institution_id)
+                .options(contains_eager(Fees.class_installments))
+                .options(contains_eager(Fees.class_fees).load_only(Classes.class_name))
+                .all()
+            )
+        # Convert the result to a list of dictionaries
+        fees_data = jsonable_encoder(fees_obj)
+        return fees_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving fees: {e}")
+    
+# get all fees by class id
+@router.get("/get_all_fees_by_class/")
+async def get_all_fees_by_class(class_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
+    try:
+        fees_objs = (
+            db.query(Fees)
+            .join(fees_installments_association)
+            .join(ClassInstallment)
+            .filter(Fees.class_id == class_id)
+            .options(contains_eager(Fees.class_installments))
+            .all()
+        )
+        return jsonable_encoder(fees_objs)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving fees: {e}")
+    
+# get fee by id
+@router.get("/get_fee_by_id/")
+async def get_fee_by_id(fee_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
+    try:
+        fees_obj = (
+            db.query(Fees)
+            .join(fees_installments_association)
+            .join(ClassInstallment)
+            .filter(Fees.fee_id == fee_id)
+            .first()
+        )
+        return succes_response(fees_obj)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving fees: {e}")
+
+# update fees
+@router.put("/update_fees/")
+async def update_fee(fee_id:int,fees:FeesBase,db:db_dependency,current_user: str = Depends(is_authenticated)):
+    fee_obj = db.query(Fees).filter(Fees.fee_id == fee_id).first()
+    if fee_obj is None:
+        raise HTTPException(status_code=404, detail="Fee not found")
+    class_obj = db.query(Classes).filter(Classes.class_id == fees.class_id).first()
+    if class_obj is None:
+        raise HTTPException(status_code=404, detail="Class not found")
+    if class_obj.institute_id != fees.institution_id:
+        raise HTTPException(status_code=404, detail="Class not belongs to this institute")
+    try:
+        for key, value in fees.dict(exclude_unset=True).items(): 
+            setattr(fee_obj, key, value)
+        db.commit()
+        db.refresh(fee_obj)
+        return succes_response(fee_obj)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+
+# delete fees
+@router.delete("/delete_fees/")
+async def delete_fee(fee_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
+    fee_obj = db.query(Fees).filter(Fees.fee_id == fee_id).first()
+    if fee_obj is None:
+        raise HTTPException(status_code=404, detail="Fee not found")
+    db.delete(fee_obj)
+    db.commit()
+    return succes_response("Fee Deleted Successfully")
     
 
 

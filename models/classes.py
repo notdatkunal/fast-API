@@ -15,7 +15,7 @@ class Classes(BASE):
     parent_exam = relationship("ParentExam", back_populates="classes")
     calender = relationship("Calender", back_populates="classes")
     grades = relationship("Grades", back_populates="classes")
-    # fees = relationship('Fees', back_populates='class_fees')
+    fees = relationship('Fees', back_populates='class_fees')
 
 class Sections(BASE):
     __tablename__ = "tbl_sections"

@@ -7,10 +7,7 @@ from models.accounts import Accounts
 from models.fees import Fees
 from models.institute import Institute
 from router.utility import succes_response
-Fees.metadata.create_all(bind=engine)
-
 # Accounts.metadata.create_all(bind=engine)
-
 router = APIRouter()
 
 class TranctionBase(str,Enum):
@@ -67,7 +64,7 @@ async def get_all_tractions_by_institute(institute_id:int,db :db_dependency,curr
     institute_data = db.query(Institute).filter(Institute.id == institute_id).first()
     if institute_data is None:
         raise HTTPException(status_code=404, detail="Institute not found")
-    tranction_data = db.query(Accounts).filter(Accounts.institution_id == institute_id).all()
+    tranction_data = db.query(Accounts).filter(Accounts.institution_id == institute_id).order_by(Accounts.account_id.desc()).all()
     if tranction_data is not None:
         return jsonable_encoder(tranction_data)
     else:

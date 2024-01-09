@@ -23,6 +23,7 @@ class Fees(BASE):
 
     # Define the many-to-many relationship with ClassInstallment
     class_installments = relationship('ClassInstallment', secondary=fees_installments_association, back_populates='fees')
+    class_fees = relationship("Classes",back_populates="fees")
 
 class ClassInstallment(BASE):
     __tablename__ = 'tbl_class_installments'
