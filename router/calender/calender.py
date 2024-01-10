@@ -62,7 +62,7 @@ async def add_calender(calender:CalenderBase,db:db_dependency,current_user: str 
         db.commit()
         db.refresh(calender_instance)
         calender_instance = get_calender_by_filter(db,"calender_id",calender_instance.calender_id)
-        return succes_response(calender_instance)
+        return succes_response(calender_instance,msg="Calender Added Successfully")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -130,7 +130,7 @@ async def update_calender(calender_id:int,calender:CalenderBase,db:db_dependency
             setattr(calender_instance, key ,value)
         db.commit()
         db.refresh(calender_instance)    
-        return succes_response(calender_instance)
+        return succes_response(calender_instance,msg="Calender Updated Successfully")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
@@ -143,7 +143,7 @@ async def delete_calender(calender_id:int,db:db_dependency,current_user: str = D
             calender_id = calender_data.calender_id
             db.delete(calender_data)
             db.commit()
-            return succes_response({"calender_id":calender_id})
+            return succes_response({"calender_id":calender_id},msg="Calender Deleted Successfully")
         else:
             raise HTTPException(status_code=404, detail="Class not found")
     except Exception as e:

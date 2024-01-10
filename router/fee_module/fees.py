@@ -16,7 +16,7 @@ class FeesBase(BaseModel):
     class_id: int
     fee_total: float
     fee_admission: float
-    installment_id: int
+    installment_id:List[int]
 
 
 # base models of installment
@@ -24,20 +24,51 @@ class InstallmentBase(BaseModel):
     installment_name: str
     installment_number: int
 
-def create_association(fee_id, installment_id, db):
+def create_association_bulk(fee_id, installment_ids, db):
     try:
-        # Insert into the association table
-        db.execute(
-            fees_installments_association.insert().values(
-                fee_id=fee_id,
-                installment_id=installment_id
+        # Create a list of dictionaries for bulk insert
+        for ele in installment_ids:
+            association_data = {"fee_id": fee_id, "installment_id": ele}
+            db.execute(
+                fees_installments_association.insert().values(association_data)
             )
-        )
-        db.commit()
-        return {"status": "Association created successfully"}
+            db.commit()
+        return {"status": "Associations created successfully"}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Error creating association: {e}")
+        raise HTTPException(status_code=500, detail=f"Error creating associations: {e}")
+    
+def update_association(fee_id, installment_ids, db):
+    try:
+        # Delete all the existing associations
+        db.query(fees_installments_association).filter(
+            fees_installments_association.c.fee_id == fee_id
+        ).delete(synchronize_session=False)
+        # Create a list of dictionaries for bulk insert
+        for ele in installment_ids:
+            association_data = {"fee_id": fee_id, "installment_id": ele}
+            db.execute(
+                fees_installments_association.insert().values(association_data)
+            )
+            db.commit()
+        return {"status": "Associations updated successfully"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error updating associations: {e}")
+    
+def get_fee_data(fee, db):
+    fee_instance = (
+        db.query(Fees)
+        .join(fees_installments_association)
+        .join(ClassInstallment)
+        .join(Classes, Classes.class_id == fee.class_id) 
+        .options(contains_eager(Fees.class_installments))
+        .options(contains_eager(Fees.class_fees))
+        .filter(Fees.fee_id == fee.fee_id)
+        .all()
+    )
+    return fee_instance
+
 
 # create fees
 @router.post("/create_fees/")
@@ -47,8 +78,10 @@ async def create_fees(fees:FeesBase,db:db_dependency,current_user: str = Depends
         raise HTTPException(status_code=404, detail="Institute not found")
     if db.query(Classes).filter(Classes.class_id == fees.class_id,Classes.institute_id== institute.id).first() is None:
         raise HTTPException(status_code=404, detail="Class not found OR Class not belongs to this institute")
-    if db.query(ClassInstallment).filter(ClassInstallment.installment_id == fees.installment_id).first() is None:
+
+    if db.query(ClassInstallment).filter(ClassInstallment.installment_id.in_(fees.installment_id)).first() is None:
         raise HTTPException(status_code=404, detail="Installment not found")
+    
     try:
         new_fees = Fees()
         new_fees.institution_id = fees.institution_id
@@ -58,8 +91,9 @@ async def create_fees(fees:FeesBase,db:db_dependency,current_user: str = Depends
         db.add(new_fees)
         db.commit()
         db.refresh(new_fees)
-        create_association(new_fees.fee_id, fees.installment_id, db)
-        return succes_response(jsonable_encoder(fees))
+        create_association_bulk(new_fees.fee_id, fees.installment_id, db)
+        fee_instance = get_fee_data(new_fees,db)
+        return succes_response(jsonable_encoder(fee_instance),msg="Fees Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
     
@@ -71,7 +105,8 @@ async def create_installment(installment:InstallmentBase,db:db_dependency,curren
         db.add(new_installment)
         db.commit()
         db.refresh(new_installment)
-        return succes_response(jsonable_encoder(installment))
+        new_installment = db.query(ClassInstallment).filter(ClassInstallment.installment_id == new_installment.installment_id).first()
+        return succes_response(jsonable_encoder(installment),msg="Installment Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
@@ -111,9 +146,10 @@ async def get_all_fees_by_institute(institution_id:int,db:db_dependency,current_
                 db.query(Fees)
                 .join(fees_installments_association)
                 .join(ClassInstallment)
+                .join(Classes,Fees.class_id == Classes.class_id)
                 .filter(Fees.institution_id == institution_id)
                 .options(contains_eager(Fees.class_installments))
-                .options(contains_eager(Fees.class_fees).load_only(Classes.class_name))
+                .options(contains_eager(Fees.class_fees))
                 .all()
             )
         # Convert the result to a list of dictionaries
@@ -146,10 +182,13 @@ async def get_fee_by_id(fee_id:int,db:db_dependency,current_user: str = Depends(
             db.query(Fees)
             .join(fees_installments_association)
             .join(ClassInstallment)
+            .join(Classes)
             .filter(Fees.fee_id == fee_id)
-            .first()
+            .options(contains_eager(Fees.class_installments))
+            .options(contains_eager(Fees.class_fees))
+            .all()
         )
-        return succes_response(fees_obj)
+        return succes_response(fees_obj,msg="Fee Found Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving fees: {e}")
 
@@ -169,7 +208,9 @@ async def update_fee(fee_id:int,fees:FeesBase,db:db_dependency,current_user: str
             setattr(fee_obj, key, value)
         db.commit()
         db.refresh(fee_obj)
-        return succes_response(fee_obj)
+        update_association(fee_obj.fee_id, fees.installment_id, db)
+        fee_instance = get_fee_data(fee_obj,db)
+        return succes_response(fee_instance,msg="Fee Updated Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
@@ -181,7 +222,7 @@ async def delete_fee(fee_id:int,db:db_dependency,current_user: str = Depends(is_
         raise HTTPException(status_code=404, detail="Fee not found")
     db.delete(fee_obj)
     db.commit()
-    return succes_response("Fee Deleted Successfully")
+    return succes_response("",msg="Fee Deleted Successfully")
     
 
 

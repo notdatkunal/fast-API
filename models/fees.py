@@ -15,8 +15,8 @@ fees_installments_association = Table(
 
 class Fees(BASE):
     __tablename__ = 'tbl_fees'
-    institution_id = Column(Integer, ForeignKey('institute.id',ondelete='CASCADE'), nullable=False)
-    class_id = Column(Integer,ForeignKey("tbl_classes.class_id",ondelete="CASCADE"))
+    institution_id = Column(Integer, ForeignKey('institute.id',ondelete="CASCADE"), nullable=False)
+    class_id = Column(Integer,ForeignKey("tbl_classes.class_id",ondelete="SET NULL"))
     fee_id = Column(Integer, primary_key=True, autoincrement=True)
     fee_total = Column(DECIMAL(15, 2))
     fee_admission = Column(DECIMAL(15, 2))

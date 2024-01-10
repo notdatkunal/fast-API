@@ -24,7 +24,7 @@ async def create_staff_documents(staff_documents:StaffDocumentsBase, db:Session 
         db.add(new_staff_documents)
         db.commit()
         db.refresh(new_staff_documents)
-        return succes_response(new_staff_documents)
+        return succes_response(new_staff_documents,msg="Staff Documents Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
@@ -58,7 +58,7 @@ async def update_staff_documents(document_id: int, staff_documents: StaffDocumen
                 setattr(staff_document, key, value)
             db.commit()
             db.refresh(staff_document)
-            return succes_response(staff_document)
+            return succes_response(staff_document,msg='Staff Documents Updated Successfully')
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error While Updating: {str(e)}")
     else:
@@ -71,6 +71,6 @@ async def delete_staff_documents(document_id: int, db: Session = Depends(get_db)
     if staff_document is not None:
         db.delete(staff_document)
         db.commit()
-        return succes_response("Staff Documents Deleted Successfully")
+        return succes_response("",msg="Staff Documents Deleted Successfully")
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Staff Documents not found")

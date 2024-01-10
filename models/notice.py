@@ -16,7 +16,7 @@ class Notice(BASE):
 class StudentNotice(Notice):
     __tablename__ = "tbl_student_notice"
     id = Column(Integer, ForeignKey("tbl_notice.notice_id"), primary_key=True)
-    student_id = Column(Integer, ForeignKey("tbl_students.student_id",ondelete="CASCADE"))
+    student_id = Column(Integer, ForeignKey("tbl_students.student_id",ondelete="SET NULL"))
     __mapper_args__ = {
         "polymorphic_identity": "student_notice",
     }
@@ -25,7 +25,7 @@ class StudentNotice(Notice):
 class StaffNotice(Notice):
     __tablename__ = "tbl_staff_notice"
     id = Column(Integer, ForeignKey("tbl_notice.notice_id"), primary_key=True)
-    staff_id = Column(Integer, ForeignKey("tbl_staffs.staff_id",ondelete="CASCADE"))
+    staff_id = Column(Integer, ForeignKey("tbl_staffs.staff_id",ondelete="SET NULL"))
     __mapper_args__ = {
         "polymorphic_identity": "staff_notice",
     }

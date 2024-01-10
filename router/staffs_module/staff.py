@@ -83,7 +83,7 @@ async def create_staff(staff:StaffBase,db:Session = Depends(get_db),current_user
         db.add(new_staff)
         db.commit()
         db.refresh(new_staff)
-        return succes_response(new_staff)
+        return succes_response(new_staff,msg="Staff Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
     
@@ -95,7 +95,7 @@ async def update_staff(staff_id: int, staff: StaffBase, db: Session = Depends(ge
             setattr(staff_data, key, value)
         db.commit()
         db.refresh(staff_data)
-        return succes_response(staff_data)
+        return succes_response(staff_data,msg="Staff Updated Successfully")
     else:
         raise HTTPException(status_code=404, detail="Staff not found")
 
@@ -116,7 +116,7 @@ async def delete_staff(staff_id:int,db:Session = Depends(get_db),current_user: s
         staff_id = staff_data.staff_id
         db.delete(staff_data)
         db.commit()
-        return {"status":"200","msg":"done",'response':{"staff_id":staff_id}}
+        return succes_response(staff_id,msg="Staff Deleted Successfully")
     else:
         raise HTTPException(status_code=404, detail="Staff not found")
 

@@ -24,7 +24,7 @@ async def create_section_for_class(
         db.add(section_instance)
         db.commit()
         db.refresh(section_instance)
-        payload = succes_response(section_instance)
+        payload = succes_response(section_instance,msg="Section Created Successfully")
         return payload
     except Exception as e:
         return HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
@@ -79,7 +79,7 @@ async def update_section(
             setattr(section_data, key, value)
         db.commit()
         db.refresh(section_data)
-        return {"status": "200", "msg": "done", "response": section_data}
+        return succes_response(section_data,msg="Section Updated Successfully")
     else:
         raise HTTPException(status_code=404, detail="Section not found")
 
@@ -92,6 +92,6 @@ async def delete_section(section_id: int, db: Session = Depends(get_db),current_
         section_data.is_deleted = True
         db.commit()
         db.refresh(section_data)
-        return {"status": "200", "msg": "done", "response": {"section_id": section_id}}
+        return succes_response(section_data,msg="Section Deleted Successfully")
     else:
         raise HTTPException(status_code=404, detail="Section not found")

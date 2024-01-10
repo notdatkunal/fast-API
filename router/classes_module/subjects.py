@@ -33,7 +33,7 @@ async def create_subject_for_class(
         db.add(subject_instance)
         db.commit()
         db.refresh(subject_instance)
-        payload = succes_response(subject_instance)
+        payload = succes_response(subject_instance,msg="Subject Created Successfully")
         return payload
     except Exception as e:
         return HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
@@ -86,7 +86,7 @@ async def update_subject(
             setattr(subject_data, key, value)
         db.commit()
         db.refresh(subject_data)
-        return {"status": "200", "msg": "done", "response": subject_data}
+        return succes_response(subject_data,msg="Subject Updated Successfully")
     else:
         raise HTTPException(status_code=404, detail="Subject not found")
 
@@ -99,6 +99,6 @@ async def delete_subject(subject_id: int, db: Session = Depends(get_db),current_
         subjects_data.is_deleted = True
         db.commit()
         db.refresh(subjects_data)
-        return {"status": "200", "msg": "done", "response": {"subject_id": subject_id}}
+        return succes_response(subjects_data,msg="Subject Deleted Successfully")
     else:
         raise HTTPException(status_code=404, detail="Subject not found")

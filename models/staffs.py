@@ -28,7 +28,7 @@ class Staff(BASE):
     # foreign keys
     transport_id = Column(
         Integer,
-        ForeignKey("tbl_transport.transport_id", ondelete="CASCADE"),
+        ForeignKey("tbl_transport.transport_id", ondelete="SET NULL"),
         nullable=True,
     )
     # relationships
@@ -44,7 +44,7 @@ class Staff_Payroll(BASE):
     payment_mode = Column(String(1000), nullable=True)
     payroll_details = Column(Text(5000), nullable=True)
     staff_id = Column(
-        Integer, ForeignKey("tbl_staffs.staff_id", ondelete="CASCADE"), nullable=True
+        Integer, ForeignKey("tbl_staffs.staff_id", ondelete="SET NULL"), nullable=True
     )
 
 
@@ -53,6 +53,6 @@ class StaffDocuments(BASE):
     document_id = Column(Integer, primary_key=True, autoincrement=True)
     document_name = Column(String(1000), nullable=True)
     document_file = Column(Text(5000), nullable=True)
-    staff_id = Column(Integer, ForeignKey("tbl_staffs.staff_id", ondelete="CASCADE"), nullable=True)
+    staff_id = Column(Integer, ForeignKey("tbl_staffs.staff_id", ondelete="SET NULL"), nullable=True)
     is_deleted = Column(Boolean, default=False)
 

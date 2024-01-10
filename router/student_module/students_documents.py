@@ -24,7 +24,7 @@ async def create_student_documents(student_documents: StudentDocumentsBase, db: 
         db.add(new_student_documents)
         db.commit()
         db.refresh(new_student_documents)
-        return succes_response(new_student_documents)
+        return succes_response(new_student_documents,msg="Student Documents Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
@@ -58,7 +58,7 @@ async def update_student_documents(document_id: int, student_documents: StudentD
                 setattr(student_document, key, value)
             db.commit()
             db.refresh(student_document)
-            return succes_response(student_document)
+            return succes_response(student_document,msg="Student Documents Updated Successfully")
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error While Updating: {str(e)}")
     else:
@@ -71,6 +71,6 @@ async def delete_student_documents(document_id: int, db: Session = Depends(get_d
     if student_document is not None:
         db.delete(student_document)
         db.commit()
-        return succes_response("Student Documents Deleted Successfully")
+        return succes_response("",msg='Student Documents Deleted Successfully')
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student Documents not found")

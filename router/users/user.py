@@ -30,7 +30,7 @@ async def create_user(user:UserBase,db:Session = Depends(get_db)):
         db.commit()
         db.refresh(new_user)
         new_user.user_password = user.user_password
-        return succes_response(new_user)
+        return succes_response(new_user,msg="User Created Successfully")
     except Exception as e:
         return HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
@@ -68,7 +68,7 @@ async def update_user(user_id: int, user: UserBase, current_user: str = Depends(
             setattr(user_data, key, value)
         db.commit()
         db.refresh(user_data)    
-        return succes_response(user_data)
+        return succes_response(user_data,msg="User Updated Successfully")
     else:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -80,22 +80,10 @@ async def delete_user(user_id: int, current_user: str = Depends(is_authenticated
         user_data.is_deleted = True
         db.commit()
         db.refresh(user_data)
-        return succes_response(user_data)
+        return succes_response(user_data,msg="User Deleted Successfully")
     else:
         raise HTTPException(status_code=404, detail="User not found")
     
-
-
-# @router.get("/login/")
-# async def login(user_email: str, user_password: str, db: Session = Depends(get_db)):
-#     user = db.query(Users).filter(Users.user_email == user_email).first()
-#     if user is not None:
-#         if user.user_password == user_password:
-#             return succes_response(user)
-#         else:
-#             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Wrong Password")
-#     else:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No User Found")
 
 
     

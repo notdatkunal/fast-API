@@ -25,11 +25,7 @@ async def create_transport(trans_data:TransportBase,db:db_dependency,current_use
         db.add(trans_instnace)
         db.commit()
         db.refresh(trans_instnace)
-        return {
-            "status_code": 200,
-            "msg": "done",
-            "response": trans_instnace
-        }
+        return succes_response(trans_instnace,msg="Transport Created Successfully")
     except Exception as e:
         return HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
     
@@ -56,7 +52,7 @@ async def update_transport(transport_id: int, transport: TransportBase, db: db_d
             setattr(transpotation_data , key, value)
         db.commit()
         db.refresh(transpotation_data )
-        return {"status":"200","msg":"done",'response': transpotation_data }
+        return succes_response(transpotation_data,msg="Transport Updated Successfully")
     else:
         raise HTTPException(status_code=404, detail="transport not found")
     
@@ -76,10 +72,9 @@ async def delete_transport(transport_id:int,db:db_dependency,current_user: str =
         transport_id = transport_data.transport_id
         db.delete(transport_data)
         db.commit()
-        return {"status":"200","msg":"done",'response':{"transport_id":transport_id}}
+        return succes_response(transport_id,msg="Transport Deleted Successfully")
     else:
         raise HTTPException(status_code=404, detail="transport not found")
-    
 
 # assigning student to transport
 @router.put("/assign_transport_to_student/",description="assign transport to student",status_code=200)
@@ -93,7 +88,7 @@ async def assign_student_to_transport(student_roll_number:str,transport_id:int,d
             student_data.transport_id = transport_id
             db.commit()
             db.refresh(student_data)
-            return succes_response(student_data)
+            return succes_response(student_data,msg="Student Assigned Successfully")
         else:
             raise HTTPException(status_code=404, detail="Student not found")
     except Exception as e:
@@ -111,7 +106,7 @@ async def assign_transport_to_staff(employee_id:str,transport_id:int,db:db_depen
             staff.transport_id = transport_id
             db.commit()
             db.refresh(staff)
-            return succes_response(staff)
+            return succes_response(staff,msg="Staff Assigned Successfully")
         else:
             raise HTTPException(status_code=404, detail="Staff not found")
     except Exception as e:
@@ -126,7 +121,7 @@ async def unassign_student_to_transport(student_roll_number:str,db:db_dependency
             student_data.transport_id = None
             db.commit()
             db.refresh(student_data)
-            return succes_response(student_data)
+            return succes_response(student_data,msg="Student Unassigned Successfully")
         else:
             raise HTTPException(status_code=404, detail="Student not found")
     except Exception as e:
@@ -141,7 +136,7 @@ async def unassign_transport_to_staff(employee_id:str,db:db_dependency,current_u
             staff.transport_id = None
             db.commit()
             db.refresh(staff)
-            return succes_response(staff)
+            return succes_response(staff,msg="Staff Unassigned Successfully")
         else:
             raise HTTPException(status_code=404, detail="Staff not found")
     except Exception as e:

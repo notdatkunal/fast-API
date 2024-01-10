@@ -40,7 +40,7 @@ async def create_grade(grade:GradeBase,db:Session = Depends(get_db),current_user
         db.commit()
         db.refresh(new_grade)
         grade = get_grade_by_filter(db,"grade_id",new_grade.grade_id)[0]
-        return succes_response(jsonable_encoder(grade))
+        return succes_response(jsonable_encoder(grade),msg="Grade Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
@@ -75,7 +75,7 @@ async def update_grade(grade_id:int,grade:GradeBase,db:Session = Depends(get_db)
             setattr(grade_instance, key, value)
         db.commit()
         db.refresh(grade_instance)
-        return succes_response(grade_instance)
+        return succes_response(grade_instance,msg="Grade Updated Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Updating: {str(e)}")
     
@@ -87,5 +87,5 @@ async def delete_grade(grade_id:int,db:Session = Depends(get_db),current_user: s
         raise HTTPException(status_code=404,detail="Grade not Found.")
     db.delete(grade)
     db.commit()
-    return succes_response(jsonable_encoder(grade))
+    return succes_response(jsonable_encoder(grade),msg="Grade Deleted Successfully")
 

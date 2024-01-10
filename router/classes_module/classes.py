@@ -30,7 +30,7 @@ async def create_class(class_data: ClassBase, db: Session = Depends(get_db),curr
         db.add(class_instance)
         db.commit()
         db.refresh(class_instance)
-        return succes_response(class_instance)
+        return succes_response(class_instance,msg="Class Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
@@ -56,9 +56,6 @@ async def get_all_classes_by_field(field_name:str,field_value:str,db:Session = D
     return jsonable_encoder(classes_obj)
 
 
-
-
-
 @router.put("/{class_id}")
 async def update_class(class_id: int, classes: ClassBase, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)) :
     classes_data=db.query(Classes).filter(Classes.class_id == class_id).first()
@@ -67,7 +64,7 @@ async def update_class(class_id: int, classes: ClassBase, db: Session = Depends(
             setattr(classes_data, key ,value)
         db.commit()
         db.refresh(classes_data)    
-        return {"status":"200","msg":"done",'response':classes_data}
+        return succes_response(classes_data,msg="Class Updated Successfully")
     else:
         raise HTTPException(status_code=404, detail="Class not found")             
 
@@ -79,7 +76,7 @@ async def delete_class(class_id: int, db: Session = Depends(get_db),current_user
         classes_data.is_deleted = True
         db.commit()
         db.refresh(classes_data)
-        return {"status": "200", "msg": "done", 'response': {'class_id': class_id}}
+        return succes_response(classes_data,msg="Class Deleted Successfully")
     else:
         raise HTTPException(status_code=404, detail="Class not found")
     

@@ -32,7 +32,7 @@ async def create_parent(parent:ParentBase, db:Session = Depends(get_db),current_
         db.add(new_parent)
         db.commit()
         db.refresh(new_parent)
-        return {"status":"200","msg":"done",'response':new_parent}
+        return succes_response(jsonable_encoder(new_parent),msg="Parent Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
@@ -58,31 +58,9 @@ async def update_parent_data(parent_id:int,parent_data: ParentBase,db : Session 
             setattr(parent_instance, key, value)
         db.commit()
         db.refresh(parent_instance)
-        return succes_response(parent_instance)
+        return succes_response(parent_instance,msg="Parent updated successfully")
     else:
         raise HTTPException(status_code=404, detail="Parent not found")
-
-# for student form below code 
-@router.get("/parent/student_id")
-async def get_parent_data_by_id(student_id:int, db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
-    parent_data = db.query(Parents).filter(Parents.student_id == student_id).all()
-    if parent_data is not None:
-        return succes_response(jsonable_encoder(parent_data))
-    else:
-        raise HTTPException(status_code=404, detail="Parent not found")
-
-@router.put("/update/{student_id}")
-async def update_student(student_id: int, student: ParentBase, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
-    parent_data = db.query(Parents).filter(Parents.student_id == student_id).first()
-    if parent_data is not None:
-        for key, value in student.dict(exclude_unset=True).items(): 
-            setattr(parent_data, key, value)
-        db.commit()
-        db.refresh(parent_data)
-        return succes_response(parent_data)
-    else:
-        raise HTTPException(status_code=404, detail="Parent not found")
-
 
 @router.delete("/delete/{parent_id}")
 async def delete_parent(parent_id: int, db: Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
@@ -90,6 +68,6 @@ async def delete_parent(parent_id: int, db: Session = Depends(get_db),current_us
     if parent_data is not None:
         db.delete(parent_data)
         db.commit()
-        return succes_response("Parent deleted successfully")
+        return succes_response("",msg="Parent deleted successfully")
     else:
         raise HTTPException(status_code=404, detail="Parent not found")

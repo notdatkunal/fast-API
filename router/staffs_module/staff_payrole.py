@@ -23,7 +23,7 @@ async def create_payroll(payroll:StaffPayrollBase, db:Session = Depends(get_db),
         db.add(new_payroll)
         db.commit()
         db.refresh(new_payroll)
-        return succes_response(new_payroll)
+        return succes_response(new_payroll,msg="Payroll Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
@@ -52,7 +52,7 @@ async def update_staff(payroll_id: int, staff: StaffPayrollBase, db: Session = D
             setattr(payroll_data, key, value)
         db.commit()
         db.refresh(payroll_data)
-        return succes_response(payroll_data)
+        return succes_response(payroll_data,msg="Payroll Updated Successfully")
     else:
         raise HTTPException(status_code=404, detail="Payroll not found")
 
@@ -64,7 +64,7 @@ async def delete_staff(payroll_id: int, db: Session = Depends(get_db),current_us
         staff_id = payroll_data.staff_id
         db.delete(payroll_data)
         db.commit()
-        return succes_response({"staff_id":staff_id})
+        return succes_response({"staff_id":staff_id},msg="Payroll Deleted Successfully")
     else:
         raise HTTPException(status_code=404, detail="Payroll not found")
     

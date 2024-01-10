@@ -51,7 +51,7 @@ async def create_assignment(assignment:AssignmentsBase,db:Session = Depends(get_
         db.commit()
         db.refresh(new_assignment)
         new_assignment = get_assignment_by_filter(db,"id",new_assignment.id)[0]
-        return succes_response(jsonable_encoder(new_assignment))
+        return succes_response(jsonable_encoder(new_assignment),msg="Assignment Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
@@ -95,7 +95,7 @@ async def update_assignment(assignment_id:int,assignment:AssignmentsBase,db:Sess
             db.commit()
             db.refresh(assignment_data)    
             new_assignment = get_assignment_by_filter(db,"id",assignment_data.id)[0]
-            return succes_response(assignment_data)
+            return succes_response(assignment_data,msg="Assignment Updated Successfully")
         else:
             raise HTTPException(status_code=404, detail="Assignment not found")
     except Exception as e:
@@ -109,7 +109,7 @@ async def delete_assignment(assignment_id:int,db:Session = Depends(get_db),curre
         assignment_data.is_deleted = True
         db.commit()
         db.refresh(assignment_data)
-        return succes_response(assignment_data)
+        return succes_response(assignment_data,msg="Assignment Deleted Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Assignment not found")
     

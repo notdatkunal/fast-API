@@ -1,8 +1,6 @@
 from database import BASE
 from .base import *
 
-
-
 class Student(BASE):
     __tablename__ = "tbl_students"
     institute_id = Column(Integer,ForeignKey("institute.id",ondelete="CASCADE"),nullable=True)
@@ -19,9 +17,9 @@ class Student(BASE):
     photo = Column(String(255),nullable=True)
     slug = Column(String(255),unique=True)
     # foreign keys
-    class_id = Column(Integer,ForeignKey("tbl_classes.class_id",ondelete="CASCADE"),nullable=True)
-    section_id = Column(Integer,ForeignKey("tbl_sections.section_id",ondelete="CASCADE"),nullable=True)
-    transport_id = Column(Integer,ForeignKey("tbl_transport.transport_id",ondelete="CASCADE"),nullable=True)
+    class_id = Column(Integer,ForeignKey("tbl_classes.class_id",ondelete="SET NULL"),nullable=True)
+    section_id = Column(Integer,ForeignKey("tbl_sections.section_id",ondelete="SET NULL"),nullable=True)
+    transport_id = Column(Integer,ForeignKey("tbl_transport.transport_id",ondelete="SET NULL"),nullable=True)
 
     # relationships
     classes = relationship("Classes",back_populates="students")

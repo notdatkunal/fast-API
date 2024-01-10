@@ -5,8 +5,8 @@ class Assignments(BASE):
     __tablename__ = "tbl_assignments"
     id = Column(Integer, primary_key=True, autoincrement=True)
     institute_id = Column(Integer, ForeignKey("institute.id", ondelete="CASCADE"), nullable=True, name='institute_id')
-    class_id = Column(Integer, ForeignKey("tbl_classes.class_id", ondelete="CASCADE"), nullable=True, name='class_id')
-    section_id = Column(Integer, ForeignKey("tbl_sections.section_id", ondelete="CASCADE"), nullable=True, name='section_id')
+    class_id = Column(Integer, ForeignKey("tbl_classes.class_id", ondelete="SET NULL"), nullable=True, name='class_id')
+    section_id = Column(Integer, ForeignKey("tbl_sections.section_id", ondelete="SET NULL"), nullable=True, name='section_id')
     assignment_Date = Column(Date, nullable=False, name='assignment_date')
     assignment_title = Column(String(1000), nullable=False, name='assignment_title')
     assignment_details = Column(String(5000), nullable=False, name='assignment_details')
@@ -21,8 +21,8 @@ class Assignments(BASE):
 class AssignmentSubmission(BASE):
     __tablename__ = "tbl_assignment_submission"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    assignment_id = Column(Integer, ForeignKey("tbl_assignments.id", ondelete="CASCADE"), nullable=True, name='assignment_id')
-    student_id = Column(Integer, ForeignKey("tbl_students.student_id", ondelete="CASCADE"), nullable=True, name='student_id')
+    assignment_id = Column(Integer, ForeignKey("tbl_assignments.id", ondelete="SET NULL"), nullable=True, name='assignment_id')
+    student_id = Column(Integer, ForeignKey("tbl_students.student_id", ondelete="SET NULL"), nullable=True, name='student_id')
     submission_date = Column(Date, nullable=False, name='submission_date')
     submission_details = Column(Text(5000), nullable=False, name='submission_details')
     assignment_file = Column(Text(1000), nullable=False, name='assignment_file')

@@ -19,7 +19,7 @@ async def create_stopage(stopage_data:StopsBase,db:Session = Depends(get_db),cur
         db.add(stopage_instnace)
         db.commit()
         db.refresh(stopage_instnace)
-        return succes_response(stopage_instnace)
+        return succes_response(stopage_instnace,msg="Stopage Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
@@ -46,7 +46,7 @@ async def update_stop(stop_id:int,stop:StopsBase,db:Session = Depends(get_db),cu
             setattr(stop_data,key,value)
         db.commit()
         db.refresh(stop_data)
-        return succes_response(stop_data)
+        return succes_response(stop_data,msg="Stopage Updated Successfully")
     else:
         raise HTTPException(status_code=404,detail="stopage not found")
 
@@ -57,6 +57,6 @@ async def delete_stop(stop_id:int,db:Session = Depends(get_db),current_user: str
     if stop_data is not None:
         db.delete(stop_data)
         db.commit()
-        return succes_response("deleted")
+        return succes_response("",msg="Stopage Deleted Successfully")
     else:
         raise HTTPException(status_code=404,detail="stopage not found")

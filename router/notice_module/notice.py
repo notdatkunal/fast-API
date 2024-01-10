@@ -37,7 +37,7 @@ async def create_notice(notice:NoticeBase,db:Session = Depends(get_db),current_u
         db.add(new_notice)
         db.commit()
         db.refresh(new_notice)
-        return succes_response(jsonable_encoder(new_notice))
+        return succes_response(jsonable_encoder(new_notice),msg="Notice Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
     
@@ -73,7 +73,7 @@ async def update_notice(notice_id:int,notice:NoticeBase,db:Session = Depends(get
             setattr(notice_instance, var, value) if value else None
         db.commit()
         db.refresh(notice_instance)
-        return succes_response(jsonable_encoder(notice_instance))
+        return succes_response(jsonable_encoder(notice_instance),msg="Notice Updated Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Updating: {str(e)}")
 
@@ -85,7 +85,7 @@ async def delete_notice(notice_id:int,db:Session = Depends(get_db),current_user:
         raise HTTPException(status_code=404,detail="Notice not Found.")
     db.delete(notice)
     db.commit()
-    return succes_response(jsonable_encoder(notice))
+    return succes_response(jsonable_encoder(notice),msg='Notice Deleted Successfully')
 
 
 

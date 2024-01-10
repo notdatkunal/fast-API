@@ -95,7 +95,7 @@ async def create_parent_exam(parent_exam:ParentBaseExam,db:db_dependency,current
         db.add(new_parent_exam)
         db.commit()
         db.refresh(new_parent_exam)
-        return succes_response(jsonable_encoder(new_parent_exam))
+        return succes_response(jsonable_encoder(new_parent_exam),msg="Parent Exam Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
     
@@ -162,7 +162,7 @@ async def update_parent_exam(parent_exam_id:int,parent_base:updateParentBaseExam
             setattr(parent_exam, key ,value)
         db.commit()
         db.refresh(parent_exam) 
-        return succes_response(jsonable_encoder(parent_exam))
+        return succes_response(jsonable_encoder(parent_exam),msg="Parent Exam Updated Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Updating: {str(e)}")
     
@@ -174,6 +174,6 @@ async def delete_parent_exam(parent_exam_id:int,db:db_dependency,current_user: s
     try:
         db.delete(parent_exam)
         db.commit()
-        return succes_response("Parent Exam Deleted Successfully")
+        return succes_response("",msg="Parent Exam Deleted Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Deleting: {str(e)}")

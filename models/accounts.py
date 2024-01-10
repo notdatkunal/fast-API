@@ -3,7 +3,7 @@ from .base import *
 
 class Accounts(BASE):
     __tablename__ = 'tbl_accounts'
-    institution_id = Column(Integer, ForeignKey('institute.id'), nullable=False)
+    institution_id = Column(Integer, ForeignKey('institute.id',ondelete="CASCADE"), nullable=False)
     account_id = Column(Integer, primary_key=True,autoincrement=True)
     date_of_entry = Column(Date)
     transaction_date = Column(Date)

@@ -56,7 +56,7 @@ async def create_exam(exam:ExamBase,db:db_dependency,current_user: str = Depends
         db.commit()
         db.refresh(exam_instance)
         exam_instance = get_exam_by_filter(db,"exam_id",exam_instance.exam_id)
-        return succes_response(exam_instance)
+        return succes_response(exam_instance,msg="Exam Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
     
@@ -67,7 +67,7 @@ async def create_bulk_exam(exams:List[ExamBase],db:db_dependency,current_user: s
     try:
         db.add_all([Exam(**exam.dict()) for exam in exams])
         db.commit()
-        return succes_response("Exams Created Successfully")
+        return succes_response("",msg="Exam Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
@@ -102,7 +102,7 @@ async def update_exam(exam_id:int,exam:ExamBase,db:db_dependency,current_user: s
         db.commit()
         db.refresh(exam_instance)
         exam_instance = get_exam_by_filter(db,"exam_id",exam_instance.exam_id)
-        return succes_response(exam_instance)
+        return succes_response(exam_instance,msg="Exam Updated Successfully")
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
     
@@ -115,7 +115,7 @@ async def delete_exam(exam_id:int,db:db_dependency,current_user: str = Depends(i
     try:
         db.delete(exam_instance)
         db.commit()
-        return succes_response("Exam Deleted Successfully")
+        return succes_response("",msg="Exam Deleted Successfully")
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 

@@ -3,7 +3,7 @@ from .base import *
 
 class Activity(BASE):
     __tablename__ = 'tbl_activity'
-    institution_id = Column(Integer, ForeignKey('institute.id'), nullable=False)
+    institution_id = Column(Integer, ForeignKey('institute.id',ondelete="CASCADE"), nullable=False)
     activity_id = Column(Integer, primary_key=True,autoincrement=True)
     activity_name = Column(String(255))
     activity_description = Column(Text(5000),nullable=True)

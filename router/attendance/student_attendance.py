@@ -53,7 +53,11 @@ def get_student_attendance(student_id, db):
         .filter(StudentAttendance.student_id == student_id, StudentAttendance.attendance_status == "Absent")
         .count()
     )
-    
+    present_count = (
+        db.query(StudentAttendance)
+        .filter(StudentAttendance.student_id == student_id, StudentAttendance.attendance_status == "Present")
+        .count()
+    )
     total_attendance_count = (
         db.query(StudentAttendance)
         .filter(StudentAttendance.student_id == student_id)
@@ -61,10 +65,10 @@ def get_student_attendance(student_id, db):
     )
     if total_attendance_count > 0:
         absent_percentage = (absent_count / total_attendance_count) * 100
-        present_percentage = 100 - absent_percentage
-        
-        return {"absent_percentage": absent_percentage, "present_percentage": present_percentage}
-    return {"absent_percentage": 0, "present_percentage": 0}
+        present_percentage = (present_count / total_attendance_count) * 100
+        leave_percentage = 100 - (absent_percentage + present_percentage)
+        return {"absent_percentage": absent_percentage, "present_percentage": present_percentage, "leave_percentage": leave_percentage}
+    return {"absent_percentage": 0, "present_percentage": 0, "leave_percentage": 0}
 
 
 
@@ -87,7 +91,7 @@ async def create_student_attendance(attendance:StudentAttendanceBase,db:db_depen
         db.commit()
         db.refresh(new_attendance)
         new_attendance = get_student_attendance_by_filter(db,"id",new_attendance.id)
-        return succes_response(jsonable_encoder(new_attendance))
+        return succes_response(jsonable_encoder(new_attendance),msg="Attendance Taken Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
     

@@ -5,10 +5,10 @@ class Calender(BASE):
     __tablename__ = "tbl_Calender"
     calender_id = Column(Integer, primary_key=True, autoincrement=True)
     institute_id = Column(Integer, ForeignKey("institute.id", ondelete="CASCADE"))
-    class_id = Column(Integer, ForeignKey("tbl_classes.class_id", ondelete="CASCADE"))
-    section_id = Column(Integer, ForeignKey("tbl_sections.section_id", ondelete="CASCADE"))
-    subject_id = Column(Integer, ForeignKey("tbl_subjects.subject_id", ondelete="CASCADE"))
-    staff_id = Column(Integer, ForeignKey("tbl_staffs.staff_id", ondelete="CASCADE"))
+    class_id = Column(Integer, ForeignKey("tbl_classes.class_id", ondelete="SET NULL"))
+    section_id = Column(Integer, ForeignKey("tbl_sections.section_id", ondelete="SET NULL"))
+    subject_id = Column(Integer, ForeignKey("tbl_subjects.subject_id", ondelete="SET NULL"))
+    staff_id = Column(Integer, ForeignKey("tbl_staffs.staff_id", ondelete="SET NULL"))
     is_deleted = Column(Boolean, default=False, name='is_deleted')
     
     day = Column(String(2000))

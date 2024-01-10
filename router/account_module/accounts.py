@@ -53,7 +53,7 @@ async def post_account_data(account:AccountBase,db:db_dependency,current_user: s
         db.add(account_instance)
         db.commit()
         db.refresh(account_instance)
-        return succes_response(account_instance)
+        return succes_response(account_instance,msg="Transaction Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
@@ -75,7 +75,7 @@ async def get_all_tractions_by_institute(institute_id:int,db :db_dependency,curr
 async def get_transaction_by_id(account_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
     account_data = db.query(Accounts).filter(Accounts.account_id == account_id).first()
     if account_data is not None:
-        return succes_response(account_data)
+        return succes_response(account_data,msg="Transaction Found Successfully")
     else:
         raise HTTPException(status_code=404, detail="Transaction not found")
 
@@ -92,7 +92,7 @@ async def adjust_transaction(account_id:int,account:AccountBase,db:db_dependency
             setattr(account_data, key, value)
         db.commit()
         db.refresh(account_data)
-        return succes_response(account_data)
+        return succes_response(account_data,msg="Transaction Updated Successfully")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
@@ -104,7 +104,7 @@ async def delete_transaction(account_id:int,db:db_dependency,current_user: str =
         raise HTTPException(status_code=404, detail="Transaction not found")
     db.delete(account_data)
     db.commit()
-    return succes_response("Transaction Deleted Successfully")
+    return succes_response("",msg="Transaction Deleted Successfully")
 
 
 

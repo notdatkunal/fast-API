@@ -64,8 +64,6 @@ async def get_institute_by_id(institute_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"Error Occured: {e}")
 
-
-
 @router.put("/Institute/")
 async def update_institute(institute_id:int,instituteBase: InstituteBase, db: Session = Depends(get_db)):
     institute = db.query(Institute).filter(Institute.id ==institute_id).first()
@@ -76,5 +74,5 @@ async def update_institute(institute_id:int,instituteBase: InstituteBase, db: Se
             setattr(institute, key, value)
         db.commit()
         db.refresh(institute)
-        return succes_response(institute)
+        return succes_response(institute,msg="Institute Updated Successfully")
 

@@ -54,7 +54,7 @@ async def submit_assignment(assignment_submission:AssignmentSubmissionBase,db:db
         db.commit()
         db.refresh(assignment_submission_instance)
         assignment_submission_instance = get_assgiment_submission(db,"id",assignment_submission_instance.id)
-        return succes_response(assignment_submission_instance)
+        return succes_response(assignment_submission_instance,msg="Assignment Submitted Successfully")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
@@ -96,7 +96,7 @@ async def update_assignment_submission(assignment_submission_id:int,assignment_s
         assignment_submission_instance.assignment_file = assignment_submission.assignment_file
         db.commit()
         assignment_submission_instance = get_assgiment_submission(db,"id",assignment_submission_instance.id)
-        return succes_response(assignment_submission_instance)
+        return succes_response(assignment_submission_instance,msg="Assignment Updated Successfully")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
@@ -109,6 +109,6 @@ async def delete_assignment_submission(assignment_submission_id:int,db:db_depend
         assignment_submission_instance.is_deleted = True
         db.commit()
         assignment_submission_instance = get_assgiment_submission(db,"id",assignment_submission_instance.id)
-        return succes_response(assignment_submission_instance)
+        return succes_response(assignment_submission_instance,msg="Assignment Deleted Successfully")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

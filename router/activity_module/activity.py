@@ -38,7 +38,7 @@ async def post_activity_data(activity:ActivityBase,db:db_dependency,current_user
         db.add(activity_instance)
         db.commit()
         db.refresh(activity_instance)
-        return succes_response(activity_instance)
+        return succes_response(activity_instance,msg="Activity Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
@@ -78,12 +78,12 @@ async def get_activity_by_id(activity_id:int,db:Session = Depends(get_db),curren
         .first()
     )
     if activity_data is not None:
-        return succes_response(activity_data)
+        return succes_response(activity_data,msg="Activity Found Successfully")
     else:
         raise HTTPException(status_code=404, detail="Activity not found")
 
 
-@router.put('update_activity/')
+@router.put('/update_activity/')
 async def update_activity(actity_id:int,activity:ActivityBase,db:db_dependency,current_user: str = Depends(is_authenticated)):
     activity_data = db.query(Activity).filter(Activity.activity_id == actity_id).first()
     if activity_data is None:
@@ -103,7 +103,7 @@ async def update_activity(actity_id:int,activity:ActivityBase,db:db_dependency,c
             setattr(activity_data, key, value)
         db.commit()
         db.refresh(activity_data)
-        return succes_response(activity_data)
+        return succes_response(activity_data,msg="Activity Updated Successfully")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
     
@@ -114,4 +114,4 @@ async def delete_activity(activity_id:int,db:db_dependency,current_user: str = D
         raise HTTPException(status_code=404, detail="Activity not found")
     db.delete(activity_data)
     db.commit()
-    return succes_response("Activity Deleted Successfully")
+    return succes_response("",msg="Activity Deleted Successfully")

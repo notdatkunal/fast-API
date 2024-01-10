@@ -74,7 +74,7 @@ async def create_student(student: StudentBase, db: Session = Depends(get_db),cur
         db.commit()
         db.refresh(new_student)
         student_data = get_student_filter_query(db,"student_id",new_student.student_id)
-        return succes_response(student_data)
+        return succes_response(student_data,msg="Student Created Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
@@ -90,7 +90,7 @@ async def update_student(student_id: int, student: StudentBase, db: Session = De
         db.commit()
         db.refresh(student_data)
         student_data = get_student_filter_query(db,"student_id",student_id)
-        return succes_response(student_data)
+        return succes_response(student_data,msg="Student Updated Successfully")
     else:
         raise HTTPException(status_code=404, detail="Student not found")
 
@@ -112,7 +112,7 @@ async def delete_student(student_id:int,db:Session = Depends(get_db),current_use
         student_id = student_data.student_id
         db.delete(student_data)
         db.commit()
-        return {"status": "200", "msg": "done", 'response':student_id}
+        return succes_response(student_id,msg="Student Deleted Successfully")
     else:
         raise HTTPException(status_code=404, detail="Student not found")
     
