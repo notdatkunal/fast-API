@@ -32,6 +32,7 @@ app.add_middleware(
    allow_methods=["*"],
    allow_headers=["*"],
 )
+#We not using blob 
 app.include_router(
    azure_blobs.router,
    prefix="/AzureBlobs",
