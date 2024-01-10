@@ -7,6 +7,7 @@ from models.students import Student
 from models.classes import Classes
 from models.examination import ParentExam,Exam
 from router.utility import succes_response
+import asyncio
 
 router = APIRouter()
 
@@ -39,7 +40,15 @@ class StudentInfo:
             return jsonable_encoder({"upcoming_parent_exam":upcoming_parent_exam,"old_parent_exams":old_parent_exams})
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error While Getting: {str(e)}")
-        
+
+    async def  collect_all_data(self,db):
+        student_data = await asyncio.gather(self.get_student_data(db))
+        exam_data = await asyncio.gather(self.get_exams_data(student_data.class_id,db))
+        payload = {
+            "student_data": student_data,
+            "exam_data": exam_data
+        }
+        return payload
 
 
 @router.get("/get_all_student_data/")
