@@ -17,6 +17,7 @@ from router.attendance import student_attendance,staff_attendance
 from router.exams import parent_exam,exam
 from router.fee_module import fees
 from router.activity_module import activity
+from router.manger_module import s
 from router.users.login import *
 from router import azure_blobs
 app = FastAPI(
@@ -32,6 +33,13 @@ app.add_middleware(
    allow_methods=["*"],
    allow_headers=["*"],
 )
+app.include_router(
+   s.router,
+   prefix="/S",
+   tags=['S'],
+)
+
+#------------------------------------------Azure Blobs START ---------------------------------------------------------
 app.include_router(
    azure_blobs.router,
    prefix="/AzureBlobs",
