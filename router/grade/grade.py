@@ -107,6 +107,21 @@ async def get_grade_by_id(grade_id:int,db:Session = Depends(get_db),current_user
         raise HTTPException(status_code=500, detail=f"No ID Found")
     return jsonable_encoder(grade)
 
+# get_grade_by_class_id
+@router.get("/get_grade_by_class_id/")
+async def get_grade_by_class_id(class_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
+    grade = (
+        db.query(Grades)
+        .join(grades_classes_association,grades_classes_association.c.grade_id == Grades.grade_id)
+        .join(Classes,Classes.class_id == grades_classes_association.c.class_id)
+        .filter(Classes.class_id == class_id)
+        .options(contains_eager(Grades.grades))
+        .all()
+    )
+    if grade is None:
+        raise HTTPException(status_code=500, detail=f"No ID Found")
+    return jsonable_encoder(grade)
+
 # update_grade  
 @router.put("/update_grade/")
 async def update_grade(grade_id:int,grade:GradeBase,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):

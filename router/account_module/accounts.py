@@ -59,13 +59,13 @@ async def post_account_data(account:AccountBase,db:db_dependency,current_user: s
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-async def amounts_calculation(field_name, db):
+async def amounts_calculation(field_name,institute_id,db):
     total_amount = (
         db.query(func.sum(Accounts.transaction_amount))
-        .filter(Accounts.payment_type == field_name)
+        .filter(Accounts.payment_type == field_name,Accounts.institution_id == institute_id)
         .scalar()
     )
-    return 0 if total_amount is None else total_amount
+    return 0.00 if total_amount is None else total_amount
 
 # featching all the data in the json formate
 @router.get("/get_all_transaction_by_institute/")
@@ -77,11 +77,11 @@ async def get_all_tractions_by_institute(institute_id:int,db :db_dependency,curr
     if tranction_data is not None:
         fee_collections, salary, expenditure, other_credits, \
         other_debits = await asyncio.gather(
-            amounts_calculation(PaymentType.Fee_Collections, db),
-            amounts_calculation(PaymentType.Salary, db),
-            amounts_calculation(PaymentType.Expenditure, db),
-            amounts_calculation(PaymentType.Other_Credits, db),
-            amounts_calculation(PaymentType.Other_Debits, db),
+            amounts_calculation(PaymentType.Fee_Collections,institute_id ,db),
+            amounts_calculation(PaymentType.Salary,institute_id ,db),
+            amounts_calculation(PaymentType.Expenditure,institute_id ,db),
+            amounts_calculation(PaymentType.Other_Credits,institute_id ,db),
+            amounts_calculation(PaymentType.Other_Debits,institute_id ,db),
         )
         payload = {
             'transactions': tranction_data,

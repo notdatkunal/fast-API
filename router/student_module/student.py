@@ -1,4 +1,5 @@
 from datetime import date
+import random
 import sys
 import uuid
 sys.path.append("..")
@@ -8,6 +9,8 @@ from models import Classes,Transport,Sections
 from models.manager import ModelManager
 from router.utility import succes_response
 router = APIRouter()
+from faker import Faker
+fake = Faker()
 
 # student base model
 class StudentBase(BaseModel):
@@ -115,4 +118,44 @@ async def delete_student(student_id:int,db:Session = Depends(get_db),current_use
         return succes_response(student_id,msg="Student Deleted Successfully")
     else:
         raise HTTPException(status_code=404, detail="Student not found")
+    
+
+def rand_class_id(institute_id:int,db):
+    class_data = db.query(Classes).filter(Classes.institute_id == institute_id).all()
+    class_id  = random.choice(class_data).class_id
+    sections = db.query(Sections).filter(Sections.class_id == class_id).all()
+    if sections:
+        section_id = random.choice(sections).section_id
+    else:
+        section_id =  1
+    return class_id,section_id
+
+@router.get("/create_fake_students/")
+async def create_fake(institute_id:int,range_:int,db:db_dependency):
+    for _ in range(range_):
+        class_id,section_id = rand_class_id(institute_id,db)
+        student = StudentBase(
+            institute_id=institute_id,
+            student_name=fake.name(),
+            gender=random.choice(["Male","FeMale"]),
+            date_of_birth=fake.date(),
+            blood_group=random.choice(["A+","A-","B+","B-","AB+","AB-","O+","O-"]),
+            roll_number="",
+            address=fake.address(),
+            phone_number=''.join(["{}".format(random.randint(0, 9)) for num in range(0, 10)]),
+            email=fake.email(),
+            admission_date=fake.date(),
+            photo="",
+            class_id=class_id,
+            section_id=section_id
+        )
+        new_student = Student(**student.dict())
+        new_student.slug = generate_slug(student.student_name,db)
+        db.add(new_student)
+        db.commit()
+        db.refresh(new_student)
+    return {"msg":"fake students created successfully"}
+
+
+
     
