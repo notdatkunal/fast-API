@@ -16,6 +16,7 @@ class FeesBase(BaseModel):
     class_id: int
     fee_total: float
     fee_admission: float
+    total_installments:float
     installment_id:List[int]
 
 
