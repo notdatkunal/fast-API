@@ -12,7 +12,7 @@ from router.users import user,login
 from router.notice_module import notice
 from router.assignments import assignment,assignment_sunmission
 from router.calender import calender
-# from router.grade import grade
+from router.grade import grade
 from router.attendance import student_attendance,staff_attendance
 from router.exams import parent_exam,exam
 from router.fee_module import fees
@@ -108,11 +108,11 @@ app.include_router(
    tags=['Fees'],
 )
 # ------------------------------------------Grades ---------------------------------------------------------
-# app.include_router(
-#    grade.router,
-#    prefix="/Grades",
-#    tags=['Grades'],
-# )
+app.include_router(
+   grade.router,
+   prefix="/Grades",
+   tags=['Grades'],
+)
 # ------------------------------------------Notices ---------------------------------------------------------
 app.include_router(
    notice.router,

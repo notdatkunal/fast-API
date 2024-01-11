@@ -7,6 +7,8 @@ from models.accounts import Accounts
 from models.fees import Fees
 from models.institute import Institute
 from router.utility import succes_response
+from sqlalchemy import func
+import asyncio
 # Accounts.metadata.create_all(bind=engine)
 router = APIRouter()
 
@@ -57,6 +59,13 @@ async def post_account_data(account:AccountBase,db:db_dependency,current_user: s
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
+async def amounts_calculation(field_name, db):
+    total_amount = (
+        db.query(func.sum(Accounts.transaction_amount))
+        .filter(Accounts.payment_type == field_name)
+        .scalar()
+    )
+    return 0 if total_amount is None else total_amount
 
 # featching all the data in the json formate
 @router.get("/get_all_transaction_by_institute/")
@@ -66,7 +75,25 @@ async def get_all_tractions_by_institute(institute_id:int,db :db_dependency,curr
         raise HTTPException(status_code=404, detail="Institute not found")
     tranction_data = db.query(Accounts).filter(Accounts.institution_id == institute_id).order_by(Accounts.account_id.desc()).all()
     if tranction_data is not None:
-        return jsonable_encoder(tranction_data)
+        fee_collections, salary, expenditure, other_credits, \
+        other_debits = await asyncio.gather(
+            amounts_calculation(PaymentType.Fee_Collections, db),
+            amounts_calculation(PaymentType.Salary, db),
+            amounts_calculation(PaymentType.Expenditure, db),
+            amounts_calculation(PaymentType.Other_Credits, db),
+            amounts_calculation(PaymentType.Other_Debits, db),
+        )
+        payload = {
+            'transactions': tranction_data,
+            'summary': {
+                'fee_collections': fee_collections,
+                'salary': salary,
+                'expenditure': expenditure,
+                'other_credits': other_credits,
+                'other_debits': other_debits,
+            }
+        }
+        return jsonable_encoder(payload)
     else:
         raise HTTPException(status_code=404, detail="Transaction not found")
 

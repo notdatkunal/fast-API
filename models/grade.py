@@ -7,8 +7,9 @@ grades_classes_association = Table(
     'grades_classes_association',
     BASE.metadata,
     Column('grade_id', Integer, ForeignKey('tbl_grades.grade_id')),
-    Column('class_id', Integer, ForeignKey('tbl_classes.class_id'))
+    Column('class_id', Integer, ForeignKey('tbl_classes.class_id')),
 )
+
 
 class Grades(BASE):
     __tablename__ = "tbl_grades"
@@ -19,7 +20,8 @@ class Grades(BASE):
     percent_upto = Column(BigInteger)
     is_deleted = Column(Boolean, default=False)
 
-    # Relationships
-    # classes = relationship("Classes", secondary=grades_classes_association, back_populates="grades")
+    grades = relationship("Classes", secondary=grades_classes_association, back_populates="grades")
+
+
 
 
