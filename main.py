@@ -15,7 +15,7 @@ from router.calender import calender
 from router.grade import grade
 from router.attendance import student_attendance,staff_attendance
 from router.exams import parent_exam,exam
-from router.fee_module import fees
+from router.fee_module import fees,student_fee
 from router.activity_module import activity
 from router.manger_module import s
 from router.users.login import *
@@ -184,6 +184,12 @@ app.include_router(
    students_documents.router,
    prefix="/StudentsDocuments",
    tags=['StudentsDocuments'],
+)
+# ------------------------------------------Student Fee ---------------------------------------------------------
+app.include_router(
+   student_fee.router,
+   prefix="/StudentFee",
+   tags=['StudentFee'],
 )
 # ------------------------------------------Subjects ---------------------------------------------------------
 app.include_router(

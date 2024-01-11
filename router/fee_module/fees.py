@@ -89,6 +89,7 @@ async def create_fees(fees:FeesBase,db:db_dependency,current_user: str = Depends
         new_fees.class_id = fees.class_id
         new_fees.fee_total = fees.fee_total
         new_fees.fee_admission = fees.fee_admission
+        new_fees.total_installments = fees.total_installments
         db.add(new_fees)
         db.commit()
         db.refresh(new_fees)

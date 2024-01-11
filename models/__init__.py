@@ -12,6 +12,6 @@ from .calender import Calender
 from .grade import Grades
 from .attendance import StudentAttendance
 from .examination import ParentExam,Exam
-from .fees import Fees,ClassInstallment
+from .fees import Fees,ClassInstallment,studentDiscount,StudentInstallemnt
 from .activity import Activity
 

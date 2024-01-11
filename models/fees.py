@@ -20,7 +20,7 @@ class Fees(BASE):
     fee_id = Column(Integer, primary_key=True, autoincrement=True)
     fee_total = Column(DECIMAL(15, 2))
     fee_admission = Column(DECIMAL(15, 2))
-    total_installments = Column(Integer)
+    total_installments = Column(Float)
 
     # Define the many-to-many relationship with ClassInstallment
     class_installments = relationship('ClassInstallment', secondary=fees_installments_association, back_populates='fees')
