@@ -1,5 +1,7 @@
-from datetime import date
+from datetime import date, timedelta
+import datetime
 from enum import Enum
+import random
 import sys
 
 from pydantic import validator
@@ -121,5 +123,15 @@ async def get_student_attendance_by_student_id(student_id:int,db:db_dependency,c
         "student_attendance_percentage":get_student_attendance(student_id, db),
     }
     return jsonable_encoder(payload)
+
+async def genarete_student_attendance(student_id:int,db):
+    for i in range(30):
+        date  = datetime.date(2023,11,1) - timedelta(days=i)
+        status = random.choice(["Present","Absent","Leave","Holiday"])
+        attendance = StudentAttendance(student_id=student_id,attendance_date=date,attendance_status=status)
+        db.add(attendance)
+        db.commit()
+        db.refresh(attendance)
+    return "Student Attendance Generated Successfully"
 
 

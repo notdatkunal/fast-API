@@ -35,7 +35,7 @@ async def genarete_student_fee(db=None,student_id:int=None,fee_total:float=None,
         student_fee = StudentInstallemnt()
         student_fee.student_id = student_id
         student_fee.installment_name = f"installment_{i}"
-        student_fee.installment_amount = fee_total/install_count
+        student_fee.installment_amount = round(fee_total/install_count,2)
         student_fee.installment_due_date = date.today()+timedelta(days=30*i)
         student_fee.installment_status = False
         student_fee.installment_paid_date = None
@@ -45,9 +45,15 @@ async def genarete_student_fee(db=None,student_id:int=None,fee_total:float=None,
     return "Student Fee Generated Successfully"
 
 @router.post("/create_student_fee/")
-async def post_student_fee(student_fee:StudentFeeBase,db:db_dependency):
+async def post_student_fee(student_fee:StudentFeeBase,db:db_dependency,current_user: str = Depends(is_authenticated)):
+    student = db.query(Student).filter(Student.student_id == student_fee.student_id).first()
+    if student is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+    is_fee_created = db.query(StudentInstallemnt).filter(StudentInstallemnt.student_id == student_fee.student_id).first()
+    if is_fee_created is not None:
+        raise HTTPException(status_code=status.HTTP_208_ALREADY_REPORTED, detail="Student Fee Already Created")
     try:
-        student_id = student_fee.student_id
+        student_id = student.student_id
         fee_total = student_fee.fee_total
         discount = student_fee.discount
         install_count = student_fee.intstall_count
@@ -58,7 +64,7 @@ async def post_student_fee(student_fee:StudentFeeBase,db:db_dependency):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/get_all_student_installments/")
-async def get_all_student_installments(student_id:int,db:db_dependency):
+async def get_all_student_installments(student_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
     class_id = (db.query(Student).filter(Student.student_id == student_id).first()).class_id
     fee_data = (
             db.query(Fees)
@@ -74,11 +80,29 @@ async def get_all_student_installments(student_id:int,db:db_dependency):
             .filter(StudentInstallemnt.student_id == student_id)
             .all()
         )
+        discount = (
+            db.query(studentDiscount)
+            .filter(studentDiscount.student_id == student_id)
+            .first()
+        )
         payload = {
             "fee_data":fee_data,
-            "student_fee":student_fee
+            "student_fee":student_fee,
+            "discount":discount
         }
         return jsonable_encoder(payload)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-# current_user: str = Depends(is_authenticated
+# current_user: str = Depends(is_authenticated)
+    
+# delete all installments of students
+@router.delete("/delete_all_student_installments/")
+async def delete_all_student_installments(student_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
+    try:
+        db.query(StudentInstallemnt).filter(StudentInstallemnt.student_id == student_id).delete()
+        db.commit()
+        return succes_response("Student Installments Deleted Successfully")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+

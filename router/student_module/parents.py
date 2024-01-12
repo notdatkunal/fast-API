@@ -50,6 +50,15 @@ async def get_parent_data_by_id(parent_id:int,db : Session = Depends(get_db),cur
     else:
         raise HTTPException(status_code=404,detail="Parent data not Found.")
     
+@router.get("/get_parents_data_by_student_id/")
+async def get_parents_data_by_student_id(student_id:int,db : Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
+    parents = db.query(Parents).filter(Parents.student_id==student_id).all()
+    if parents is not None:
+        return succes_response(jsonable_encoder(parents))
+    else:
+        raise HTTPException(status_code=404,detail="Parent data not Found.")
+
+    
 @router.put("/update_parent/")
 async def update_parent_data(parent_id:int,parent_data: ParentBase,db : Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     parent_instance= db.query(Parents).filter(Parents.parent_id == parent_id).first()
