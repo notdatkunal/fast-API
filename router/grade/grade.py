@@ -134,7 +134,8 @@ async def update_grade(grade_id:int,grade:GradeBase,db:Session = Depends(get_db)
         db.commit()
         db.refresh(grade_instance)
         await update_association(db,grade_id,grade.class_id)
-        return succes_response(grade_instance,msg="Grade Updated Successfully")
+        grade = await get_grade_by_id(grade_id,db)
+        return succes_response(grade,msg="Grade Updated Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Updating: {str(e)}")
     
