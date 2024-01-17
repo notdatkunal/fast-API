@@ -41,8 +41,8 @@ def create_user(user: UserBase, db: Session = Depends(get_db)):
     except Exception as e:
         return HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
-@router.get("/")
-async def get_all_institutes(db:db_dependency):
+@router.get("/get_all_institutes/")
+async def get_all_institutes(db:db_dependency,current_user: str = Depends(is_authenticated)):
     all_institutes = db.query(Institute).all()
     return jsonable_encoder(all_institutes)
 
@@ -54,8 +54,8 @@ async def create_institute(institute: InstituteBase, db:db_dependency):
     db.commit()
     return {"msg": "Institute is Saved"}
 
-@router.get("/Institute/")
-async def get_institute_by_id(institute_id: int, db: Session = Depends(get_db)):
+@router.get("/get_institute_by_id/")
+async def get_institute_by_id(institute_id: int, db:db_dependency,current_user: str = Depends(is_authenticated)):
     try:
         institute = db.query(Institute).filter(Institute.id == institute_id).first()
         if not institute:
@@ -64,8 +64,8 @@ async def get_institute_by_id(institute_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"Error Occured: {e}")
 
-@router.put("/Institute/")
-async def update_institute(institute_id:int,instituteBase: InstituteBase, db: Session = Depends(get_db)):
+@router.put("/update_institute/")
+async def update_institute(institute_id:int,instituteBase: InstituteBase, db:db_dependency,current_user: str = Depends(is_authenticated)):
     institute = db.query(Institute).filter(Institute.id ==institute_id).first()
     if institute is None:
         raise HTTPException(status_code=404, detail="Institute Not Found")
@@ -76,16 +76,16 @@ async def update_institute(institute_id:int,instituteBase: InstituteBase, db: Se
         db.refresh(institute)
         return succes_response(institute,msg="Institute Updated Successfully")
     
-@router.patch("/update_institute/")
-async def update_institute(institute_id: int, instituteBase: InstituteBase, db: Session = Depends(get_db)):
+@router.patch("/update_institute_partial/")
+async def update_institute(institute_id: int,db: Session = Depends(get_db),current_user: str = Depends(is_authenticated),data: dict ={}):
     try:
         institute = db.query(Institute).filter(Institute.id == institute_id).first()
         if institute is None:
             raise HTTPException(status_code=404, detail="Institute Not Found")
-        db.merge(institute)
+        for key, value in data.items():
+            setattr(institute, key, value)
         db.commit()
         db.refresh(institute)
-
         return succes_response(institute, msg="Institute Updated Successfully")
     except SQLAlchemyError as e:
         db.rollback()

@@ -31,3 +31,5 @@ class Exam(BASE):
     parent_exam = relationship("ParentExam", back_populates="exam")
 
 
+
+

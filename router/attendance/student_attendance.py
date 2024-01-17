@@ -8,6 +8,7 @@ sys.path.append("..")
 from router.basic_import import *
 from models.attendance import StudentAttendance
 from models.students import Student
+from models.classes import Classes
 from router.utility import succes_response
 from sqlalchemy.orm import joinedload,Load,load_only
 import asyncio
@@ -51,7 +52,9 @@ def get_student_attendance_by_filter(db=None,filter_column:str=None,filter_value
         attendance_data = (
             db.query(StudentAttendance)
             .join(Student,StudentAttendance.student_id == Student.student_id)
-            .options(joinedload(StudentAttendance.student).load_only(Student.student_name))
+            .options(
+                joinedload(StudentAttendance.student).load_only(Student.student_name,Student.roll_number)
+            )
             .filter(getattr(StudentAttendance,filter_column) == filter_value and StudentAttendance.is_deleted == False)
             .order_by(StudentAttendance.attendance_date.desc())
             .all()
@@ -59,6 +62,35 @@ def get_student_attendance_by_filter(db=None,filter_column:str=None,filter_value
         return attendance_data
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
+    
+def get_attendance_percentage(institute_id, db):
+    absent_count = (
+        db.query(StudentAttendance)
+        .join(Student)
+        .filter(StudentAttendance.institute_id == institute_id, StudentAttendance.attendance_status == "Absent")
+        .count()
+    )
+    present_count = (
+        db.query(StudentAttendance)
+        .join(Student)
+        .filter(StudentAttendance.institute_id == institute_id, StudentAttendance.attendance_status == "Present")
+        .count()
+    )
+    total_attendance_count = (
+        db.query(StudentAttendance)
+        .join(Student)
+        .filter(StudentAttendance.institute_id == institute_id)
+        .count()
+    )
+    if total_attendance_count > 0:
+        absent_percentage = round((absent_count / total_attendance_count) * 100,2)
+        present_percentage = round((present_count / total_attendance_count) * 100,2)
+        leave_percentage = 100 - (absent_percentage + present_percentage)
+        return {"absent_percentage": absent_percentage, "present_percentage": present_percentage, "leave_percentage": leave_percentage}
+    return {"absent_percentage": 0, "present_percentage": 0, "leave_percentage": 0}
+
+
+
 def get_student_attendance(student_id, db):
     absent_count = (
         db.query(StudentAttendance)
@@ -76,8 +108,8 @@ def get_student_attendance(student_id, db):
         .count()
     )
     if total_attendance_count > 0:
-        absent_percentage = (absent_count / total_attendance_count) * 100
-        present_percentage = (present_count / total_attendance_count) * 100
+        absent_percentage = round((absent_count / total_attendance_count) * 100,2)
+        present_percentage = round((present_count / total_attendance_count) * 100,2)
         leave_percentage = 100 - (absent_percentage + present_percentage)
         return {"absent_percentage": absent_percentage, "present_percentage": present_percentage, "leave_percentage": leave_percentage}
     return {"absent_percentage": 0, "present_percentage": 0, "leave_percentage": 0}
@@ -121,7 +153,11 @@ async def get_all_student_attendance(db:db_dependency,current_user: str = Depend
 @router.get("/get_student_attendance_by_institute_id/")
 async def get_student_attendance_by_institute_id(institute_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
     attendance_data = get_student_attendance_by_filter(db,"institute_id",institute_id)
-    return jsonable_encoder(attendance_data)
+    payload = {
+        "attendance_data":attendance_data,
+        "attendance_percentage":get_attendance_percentage(institute_id, db),
+    }
+    return jsonable_encoder(payload)
 
 
 # get student attendance by student id
