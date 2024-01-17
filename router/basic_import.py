@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from models.manager import ModelManager
 from .users.login import get_current_user
 from sqlalchemy.orm import joinedload,Load,load_only
+from sqlalchemy.exc import SQLAlchemyError
 
 def is_authenticated(current_user: str = Depends(get_current_user)):
     if not current_user:

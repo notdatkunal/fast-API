@@ -75,4 +75,19 @@ async def update_institute(institute_id:int,instituteBase: InstituteBase, db: Se
         db.commit()
         db.refresh(institute)
         return succes_response(institute,msg="Institute Updated Successfully")
+    
+@router.patch("/update_institute/")
+async def update_institute(institute_id: int, instituteBase: InstituteBase, db: Session = Depends(get_db)):
+    try:
+        institute = db.query(Institute).filter(Institute.id == institute_id).first()
+        if institute is None:
+            raise HTTPException(status_code=404, detail="Institute Not Found")
+        db.merge(institute)
+        db.commit()
+        db.refresh(institute)
+
+        return succes_response(institute, msg="Institute Updated Successfully")
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database Error: {str(e)}")
 

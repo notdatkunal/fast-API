@@ -14,7 +14,7 @@ from router.assignments import assignment,assignment_sunmission
 from router.calender import calender
 from router.grade import grade
 from router.attendance import student_attendance,staff_attendance
-from router.exams import parent_exam,exam
+from router.exams import parent_exam,exam,result
 from router.fee_module import fees,student_fee
 from router.activity_module import activity
 from router.manger_module import s
@@ -35,9 +35,9 @@ app.add_middleware(
 )
 #We not using blob 
 app.include_router(
-   s.router,
-   prefix="/S",
-   tags=['S'],
+   result.router,
+   prefix="/Result",
+   tags=['Result'],
 )
 
 #------------------------------------------Azure Blobs START ---------------------------------------------------------

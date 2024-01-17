@@ -77,6 +77,7 @@ async def get_exam_by_parent_exam_id(parent_exam_id:int,db:db_dependency,current
     exam = get_exam_by_filter(db,"parent_exam_id",parent_exam_id)
     return succes_response(exam)
 
+
 # get exam by exam id
 @router.get("/get_exam_by_exam_id/")
 async def get_exam_by_exam_id(exam_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):

@@ -66,7 +66,7 @@ async def get_all_activity_by_student(student_id:int,db:Session = Depends(get_db
         .order_by(Activity.activity_id.desc())
         .all()
     )
-    return jsonable_encoder(activity_data)
+    return succes_response(data=activity_data,msg="Activity Found Successfully")
 
 # get all activity by id
 @router.get("/get_activity_by_id/")

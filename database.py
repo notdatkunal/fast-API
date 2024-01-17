@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# SQLALCHEMY_DATABASE_URL = "mysql://a6e9a1_gsmpoc:gsmpoc@2023@MYSQL5044.site4now.net:3306/db_a6e9a1_gsmpoc"
+# SQLALCHEMY_DATABASE_URL = "mysql:///a6e9a1_gsmpoc:gsmpoc2023@MYSQL5044.site4now.net:3306/db_a6e9a1_gsmpoc"
 SQLALCHEMY_DATABASE_URL = "mysql+pymysql://a6e9a1_gsmpoc:gsmpoc2023@MYSQL5044.site4now.net:3306/db_a6e9a1_gsmpoc"
 
 # Create the SQLAlchemy engine

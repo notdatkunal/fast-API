@@ -151,6 +151,14 @@ async def get_parent_exam_by_parent_exam_id(parent_exam_id:int,db:db_dependency,
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Parent Exam not found")
     return succes_response(jsonable_encoder(parent_exam))
 
+# get parent_exam by slug
+@router.get("/get_parent_exam_by_slug",description="Get Parent Exam By Slug")
+async def get_parent_exam_by_slug(parent_exam_slug:str,db:db_dependency,current_user: str = Depends(is_authenticated)):
+    parent_exam = db.query(ParentExam).filter(ParentExam.parent_exam_slug == parent_exam_slug).first()
+    if not parent_exam :
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Parent Exam not found")
+    return succes_response(jsonable_encoder(parent_exam))
+
 # update parent exam
 @router.put("/update_parent_exam",description="Update Parent Exam")
 async def update_parent_exam(parent_exam_id:int,parent_base:updateParentBaseExam,db:db_dependency,current_user: str = Depends(is_authenticated)):

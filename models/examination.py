@@ -29,3 +29,5 @@ class Exam(BASE):
     # relation
     subject = relationship("Subjects", back_populates="exam")
     parent_exam = relationship("ParentExam", back_populates="exam")
+
+

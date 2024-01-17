@@ -3,7 +3,6 @@ import datetime
 from enum import Enum
 import random
 import sys
-
 from pydantic import validator
 sys.path.append("..")
 from router.basic_import import *
@@ -11,6 +10,7 @@ from models.attendance import StudentAttendance
 from models.students import Student
 from router.utility import succes_response
 from sqlalchemy.orm import joinedload,Load,load_only
+import asyncio
 
 router = APIRouter()
 
@@ -33,7 +33,17 @@ class StudentAttendanceBase(BaseModel):
     def attendance_date_must_be_valid(cls, v):
         if v > date.today():
             raise ValueError('Attendance date must be valid')
-        return v
+        return v    
+
+class StudentBulkAttendanceBase(BaseModel):
+    student_id: int
+    attendance_date: date = Field(default_factory=date.today)
+    attendance_status: AttendaceStatus
+    institute_id: int
+    is_deleted: bool = False
+
+class BulkData(BaseModel):
+    data: List[StudentBulkAttendanceBase]
 
 # basic attendance
 def get_student_attendance_by_filter(db=None,filter_column:str=None,filter_value:str=None):
@@ -135,3 +145,17 @@ async def genarete_student_attendance(student_id:int,db):
     return "Student Attendance Generated Successfully"
 
 
+# creating bulk student attendance according class
+@router.post("/create_bulk_student_attendance/")
+async def create_bulk_student_attendance(bulk_data: BulkData, db: db_dependency):
+    student_data = bulk_data.data
+    try:
+        for data in student_data:
+            attendance = StudentAttendance(**data.dict())
+            db.add(attendance)
+            db.flush() 
+            db.refresh(attendance)
+        db.commit()  
+        return succes_response(data="", msg="Attendance Taken Successfully")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
