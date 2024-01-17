@@ -27,6 +27,7 @@ class Student(BASE):
     student_attendance = relationship("StudentAttendance",back_populates="student")
     assignment_submission = relationship("AssignmentSubmission",back_populates="students")
     activity = relationship("Activity",back_populates="students")
+    result_entry = relationship("ResultEntry",back_populates="student")
 
 
 class Parents(BASE):

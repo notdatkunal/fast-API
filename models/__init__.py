@@ -11,7 +11,7 @@ from .users import Users
 from .calender import Calender
 from .grade import Grades
 from .attendance import StudentAttendance
-from .examination import ParentExam,Exam
+from .examination import ParentExam,Exam,ResultEntry
 from .fees import Fees,ClassInstallment,studentDiscount,StudentInstallemnt
 from .activity import Activity
 

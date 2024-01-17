@@ -195,3 +195,54 @@ async def create_bulk_student_attendance(bulk_data: BulkData, db: db_dependency)
         return succes_response(data="", msg="Attendance Taken Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+
+@router.get("/get_attendance_by_id/")
+async def get_attendance_by_id(attendance_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
+    attendance = db.query(StudentAttendance).filter(StudentAttendance.id == attendance_id).first()
+    if attendance is None:
+        raise HTTPException(status_code=404, detail="Attendance Not Found")
+    return succes_response(jsonable_encoder(attendance))
+
+@router.put("/update_student_attendance/")
+async def update_student_attendance(attendance_id:int,attendance:StudentBulkAttendanceBase,db:db_dependency,current_user: str = Depends(is_authenticated)):
+    attendance_data = db.query(StudentAttendance).filter(StudentAttendance.id == attendance_id).first()
+    if attendance_data is None:
+        raise HTTPException(status_code=404, detail="Attendance Not Found")
+    student = db.query(Student).filter(Student.student_id == attendance.student_id).first()
+    if student is None:
+        raise HTTPException(status_code=404, detail="Student Not Found")
+    try:
+        for key, value in attendance.dict(exclude_unset=True).items():
+            setattr(attendance_data, key, value)
+        db.commit()
+        db.refresh(attendance_data)
+        return succes_response(jsonable_encoder(attendance_data),msg="Attendance Updated Successfully")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error While Updating: {str(e)}")
+
+@router.patch("/update_student_attendance_partial/")
+async def update_student_attendance_partial(attendance_id:int,db:db_dependency,current_user: str = Depends(is_authenticated),data: dict ={}):
+    try:
+        attendance = db.query(StudentAttendance).filter(StudentAttendance.id == attendance_id).first()
+        if attendance is None:
+            raise HTTPException(status_code=404, detail="Attendance Not Found")
+        for key, value in data.items():
+            setattr(attendance, key, value)
+        db.commit()
+        db.refresh(attendance)
+        return succes_response(jsonable_encoder(attendance), msg="Attendance Updated Successfully")
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Error Occured: {e}")
+
+@router.delete("/delete_student_attendance/")
+async def delete_student_attendance(attendance_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
+    attendance = db.query(StudentAttendance).filter(StudentAttendance.id == attendance_id).first()
+    if attendance is None:
+        raise HTTPException(status_code=404, detail="Attendance Not Found")
+    try:
+        attendance.is_deleted = True
+        db.commit()
+        db.refresh(attendance)
+        return succes_response(jsonable_encoder(attendance),msg="Attendance Deleted Successfully")
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Error Occured: {e}")

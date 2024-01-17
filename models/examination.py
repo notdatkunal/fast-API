@@ -15,6 +15,7 @@ class ParentExam(BASE):
     # relation
     classes = relationship("Classes", back_populates="parent_exam")
     exam = relationship("Exam", back_populates="parent_exam")
+    result_entry = relationship("ResultEntry", back_populates="parent_exam")
     
 
 
@@ -31,5 +32,15 @@ class Exam(BASE):
     parent_exam = relationship("ParentExam", back_populates="exam")
 
 
+class ResultEntry(BASE):
+    __tablename__ = "tbl_result_entry"
+    result_entry_id = Column(Integer, primary_key=True, autoincrement=True)
+    exam_id = Column(Integer, ForeignKey("tbl_parent_exams.parent_exam_id", ondelete="SET NULL"))
+    student_id = Column(Integer, ForeignKey("tbl_students.student_id", ondelete="SET NULL"))
+    result = Column(JSON)
+    is_deleted = Column(Boolean, default=False)
 
+    # relation
+    student = relationship("Student", back_populates="result_entry")
+    parent_exam = relationship("ParentExam", back_populates="result_entry")
 
