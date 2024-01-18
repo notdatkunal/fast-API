@@ -12,6 +12,7 @@ class Assignments(BASE):
     assignment_details = Column(String(5000), nullable=False, name='assignment_details')
     assignment_due_date = Column(Date, nullable=False, name='assignment_due_date')
     is_deleted = Column(Boolean, default=False, name='is_deleted')
+    assignment_slug = Column(String(255), unique=True)
     
     classes = relationship("Classes", back_populates="assignments")
     sections = relationship("Sections", back_populates="assignments")

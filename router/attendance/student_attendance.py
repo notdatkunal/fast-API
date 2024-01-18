@@ -18,9 +18,6 @@ router = APIRouter()
 class AttendaceStatus(str,Enum):
     Present = "Present"
     Absent = "Absent"
-    Leave = "Leave"
-    Holiday = "Holiday"
-
 
 # base models
 class StudentAttendanceBase(BaseModel):
@@ -52,8 +49,9 @@ def get_student_attendance_by_filter(db=None,filter_column:str=None,filter_value
         attendance_data = (
             db.query(StudentAttendance)
             .join(Student,StudentAttendance.student_id == Student.student_id)
+            .join(Classes,Student.class_id == Classes.class_id)
             .options(
-                joinedload(StudentAttendance.student).load_only(Student.student_name,Student.roll_number)
+                joinedload(StudentAttendance.student).load_only(Student.student_name,Student.roll_number),
             )
             .filter(getattr(StudentAttendance,filter_column) == filter_value and StudentAttendance.is_deleted == False)
             .order_by(StudentAttendance.attendance_date.desc())
@@ -85,10 +83,8 @@ def get_attendance_percentage(institute_id, db):
     if total_attendance_count > 0:
         absent_percentage = round((absent_count / total_attendance_count) * 100,2)
         present_percentage = round((present_count / total_attendance_count) * 100,2)
-        leave_percentage = 100 - (absent_percentage + present_percentage)
-        return {"absent_percentage": absent_percentage, "present_percentage": present_percentage, "leave_percentage": leave_percentage}
-    return {"absent_percentage": 0, "present_percentage": 0, "leave_percentage": 0}
-
+        return {"absent_percentage": absent_percentage, "present_percentage": present_percentage}
+    return {"absent_percentage": 0, "present_percentage": 0}
 
 
 def get_student_attendance(student_id, db):
@@ -110,9 +106,8 @@ def get_student_attendance(student_id, db):
     if total_attendance_count > 0:
         absent_percentage = round((absent_count / total_attendance_count) * 100,2)
         present_percentage = round((present_count / total_attendance_count) * 100,2)
-        leave_percentage = 100 - (absent_percentage + present_percentage)
-        return {"absent_percentage": absent_percentage, "present_percentage": present_percentage, "leave_percentage": leave_percentage}
-    return {"absent_percentage": 0, "present_percentage": 0, "leave_percentage": 0}
+        return {"absent_percentage": absent_percentage, "present_percentage": present_percentage}
+    return {"absent_percentage": 0, "present_percentage": 0}
 
 
 
@@ -185,23 +180,28 @@ async def genarete_student_attendance(student_id:int,db):
 @router.post("/create_bulk_student_attendance/")
 async def create_bulk_student_attendance(bulk_data: BulkData, db: db_dependency):
     student_data = bulk_data.data
+    payload = []
     try:
         for data in student_data:
+            is_having_attendance = db.query(StudentAttendance).filter(StudentAttendance.attendance_date == data.attendance_date,StudentAttendance.student_id == data.student_id).first()
+            if is_having_attendance is not None:
+                continue
             attendance = StudentAttendance(**data.dict())
             db.add(attendance)
             db.flush() 
             db.refresh(attendance)
-        db.commit()  
-        return succes_response(data="", msg="Attendance Taken Successfully")
+            attendance = get_student_attendance_by_filter(db,"id",attendance.id)
+            payload.append(attendance)
+        return succes_response(data=payload, msg="Attendance Taken Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
 
 @router.get("/get_attendance_by_id/")
 async def get_attendance_by_id(attendance_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
-    attendance = db.query(StudentAttendance).filter(StudentAttendance.id == attendance_id).first()
+    attendance = get_student_attendance_by_filter(db,"id",attendance_id)
     if attendance is None:
         raise HTTPException(status_code=404, detail="Attendance Not Found")
-    return succes_response(jsonable_encoder(attendance))
+    return succes_response(data=attendance,msg="Attendance Found Successfully")
 
 @router.put("/update_student_attendance/")
 async def update_student_attendance(attendance_id:int,attendance:StudentBulkAttendanceBase,db:db_dependency,current_user: str = Depends(is_authenticated)):

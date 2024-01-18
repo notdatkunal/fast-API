@@ -1,5 +1,6 @@
 from datetime import date
 import sys
+import uuid
 sys.path.append("..")
 from router.basic_import import *
 from models.assignments import Assignments,AssignmentSubmission
@@ -41,12 +42,20 @@ def get_assignment_by_filter(db=None,filter_column:str=None,filter_value:str=Non
         return assignment_data
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
+    
+def genarete_slug(title="",db=None):
+    slug  = title.replace(" ","-")
+    while db.query(Assignments).filter(Assignments.assignment_slug == slug).first() is not None:
+        slug = slug +"-"+str(uuid.uuid4())[:4]
+    return slug
+
 
 # create assignment
 @router.post("/create_assignment/")
 async def create_assignment(assignment:AssignmentsBase,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
         new_assignment = Assignments(**assignment.dict())
+        new_assignment.assignment_slug = genarete_slug(assignment.assignment_title,db)
         db.add(new_assignment)
         db.commit()
         db.refresh(new_assignment)
@@ -79,7 +88,7 @@ async def get_assignment_by_field(field_name:str,field_value:str,db:Session = De
 @router.get("/get_assignment_by_id/")
 async def get_assignment_by_id(assignment_id:int,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
     try:
-        assignment = db.query(Assignments).filter(Assignments.id == assignment_id).first()
+        assignment = get_assignment_by_filter(db,"id",assignment_id)[0]
         return jsonable_encoder(assignment)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"No ID Found")

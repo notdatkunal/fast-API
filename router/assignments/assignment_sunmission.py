@@ -19,7 +19,6 @@ class AssignmentSubmissionBase(BaseModel):
     assignment_file: str
     is_deleted: bool = False
 
-
 # basic assignment
 def get_assgiment_submission(db=None,filter_column=None,filter_value=None):
     try:
@@ -29,7 +28,7 @@ def get_assgiment_submission(db=None,filter_column=None,filter_value=None):
             .join(Student,AssignmentSubmission.student_id == Student.student_id)
             .options(
                 joinedload(AssignmentSubmission.assignments).load_only(Assignments.assignment_title),
-                joinedload(AssignmentSubmission.students).load_only(Student.student_name)
+                joinedload(AssignmentSubmission.students).load_only(Student.student_name,Student.roll_number)
             )
             .filter(getattr(AssignmentSubmission,filter_column) == filter_value and AssignmentSubmission.is_deleted == False)
             .order_by(AssignmentSubmission.id.desc())

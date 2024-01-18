@@ -46,16 +46,16 @@ def generate_result(exam_subjects, result):
 
 @router.post("/result_entry")
 async def result_entry(result_entry: ResultEntryBase, db: Session = Depends(get_db)):
-    parent_exam = await db.query(ParentExam).filter(ParentExam.parent_exam_id == result_entry.exam_id).first()
+    parent_exam = db.query(ParentExam).filter(ParentExam.parent_exam_id == result_entry.exam_id).first()
     if parent_exam is None:
         return HTTPException(status_code=404, detail="Parent Exam Not Found")
-    student = await db.query(Student).filter(Student.student_id == result_entry.student_id).first()
+    student = db.query(Student).filter(Student.student_id == result_entry.student_id).first()
     if student is None:
         return HTTPException(status_code=404, detail="Student Not Found")
-    exam_subjects = await db.query(Exam).filter(Exam.parent_exam_id == result_entry.exam_id).all()
+    exam_subjects =  db.query(Exam).filter(Exam.parent_exam_id == result_entry.exam_id).all()
     if exam_subjects is None:
         return HTTPException(status_code=404, detail="Exam Subject Not Found")
-    is_student_exist = await db.query(ResultEntry).filter(ResultEntry.student_id == result_entry.student_id).first()
+    is_student_exist =  db.query(ResultEntry).filter(ResultEntry.student_id == result_entry.student_id).first()
     if is_student_exist is not None:
         return HTTPException(status_code=404, detail="Result Already Exist")
     try:

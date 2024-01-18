@@ -15,8 +15,6 @@ class AttendaceStatus(str,Enum):
     Present = "Present"
     Absent = "Absent"
     Leave = "Leave"
-    Holiday = "Holiday"
-
 
 # base models
 class StaffAttendanceBase(BaseModel):
@@ -31,6 +29,17 @@ class StaffAttendanceBase(BaseModel):
         if v > date.today():
             raise ValueError('Attendance Date must be Current date or Past Dates')
         return v
+    
+
+class StaffBulkAttendanceBase(BaseModel):
+    staff_id:int
+    attendance_date: date =Field(default_factory=date.today)
+    attendance_status: AttendaceStatus
+    institute_id: int
+    is_deleted: bool = False
+
+class BulkData(BaseModel):
+    data: List[StaffBulkAttendanceBase]
 
 
 # basic attendance
@@ -39,7 +48,7 @@ def get_staff_attendance_by_filter(db=None,filter_column:str=None,filter_value:s
         attendance_data = (
             db.query(StaffAttendance)
             .join(Staff,StaffAttendance.staff_id == Staff.staff_id)
-            .options(joinedload(StaffAttendance.staff).load_only(Staff.staff_name))
+            .options(joinedload(StaffAttendance.staff).load_only(Staff.staff_name,Staff.employee_id))
             .filter(getattr(StaffAttendance,filter_column) == filter_value,StaffAttendance.is_deleted == False)
             .order_by(StaffAttendance.attendance_date.desc())
             .all()
@@ -123,4 +132,56 @@ async def get_staff_attendance_by_staff_id(staff_id:int,db:db_dependency,current
         "staff_attendance_percentage":get_staff_attendance(staff_id,db)
     }
     return jsonable_encoder(payload)
+
+
+# creating bulk staff attendance according class
+@router.post("/create_bulk_staff_attendance/")
+async def create_bulk_staff_attendance(bulk_data: BulkData, db: db_dependency):
+    staff_data = bulk_data.data
+    payload = []
+    try:
+        for data in staff_data:
+            is_having_attendance = db.query(StaffAttendance).filter(StaffAttendance.attendance_date == data.attendance_date, StaffAttendance.staff_id == data.staff_id).first()
+            if is_having_attendance is not None:
+                continue
+            attendance = StaffAttendance(**data.dict())
+            db.add(attendance)
+            db.flush() 
+            db.refresh(attendance)
+            db.commit()  
+            attendance = get_staff_attendance_by_filter(db,"id",attendance.id)
+            payload.append(attendance)
+        
+        return succes_response(data=payload, msg="Attendance Taken Successfully")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+
+# get staff attendance by id
+@router.get("/get_staff_attendance_by_id/")
+async def get_staff_attendance_by_id(attendance_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
+    try:
+        attendance = get_staff_attendance_by_filter(db,"id",attendance_id)
+        if attendance is None:
+            raise HTTPException(status_code=404, detail="Attendance Not Found")
+        return jsonable_encoder(attendance)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Error Occured: {e}")    
+
+
+# patch medthod
+@router.patch("/update_staff_attendance/")
+async def update_staff_attendance(attendance_id:int,db:db_dependency,current_user: str = Depends(is_authenticated),data: dict ={}):
+    try:
+        attendance = db.query(StaffAttendance).filter(StaffAttendance.id == attendance_id).first()
+        if attendance is None:
+            raise HTTPException(status_code=404, detail="Attendance Not Found")
+        for key, value in data.items():
+            setattr(attendance, key, value)
+        db.commit()
+        db.refresh(attendance)
+        attendance = get_staff_attendance_by_filter(db,"id",attendance_id)
+        return succes_response(attendance, msg="Attendance Updated Successfully")
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Error Occured: {e}")
+
 
