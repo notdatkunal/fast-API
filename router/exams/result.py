@@ -1,5 +1,5 @@
 from database import BASE
-from sqlalchemy import Table, Column, Integer, String, Boolean, ForeignKey, Float
+from sqlalchemy import Table, Column, Integer, String, Boolean, ForeignKey, Float, func
 import sys
 
 sys.path.append("..")
@@ -124,10 +124,25 @@ async def get_all_result_entry(db:db_dependency,current_user: str = Depends(is_a
         raise HTTPException(status_code=500, detail=f"Error While Getting: {str(e)}")
     
 
+# counting result according to grade
+def counting_grades(db:db_dependency,parent_exam_id):
+    try:
+        count = (
+            db.query(ResultEntry)
+            .filter(ResultEntry.exam_id == parent_exam_id)
+            .group_by(ResultEntry.result["grade"])
+        )
+        return count
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error While Getting: {str(e)}")
+
+
 # get result entry by parent_exam_id
 @router.get("/get_result_entry_by_parent_exam_id/")
 async def get_result_entry_by_parent_exam_id(parent_exam_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
     parent_exam = db.query(ParentExam).filter(ParentExam.parent_exam_id == parent_exam_id).first()
+    count = counting_grades(db,parent_exam_id)
+    print(count)
     if parent_exam is None:
         raise HTTPException(status_code=404, detail="Parent Exam Not Found")
     result_entry = get_result_data(db,"exam_id",parent_exam_id)
