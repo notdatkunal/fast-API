@@ -19,30 +19,63 @@ class ResultEntryBase(BaseModel):
     result: dict
     is_deleted: bool = False
 
-def generate_result(exam_subjects, result):
-    result_data = {}
-    marks = []
+class ResultEntryFrontEnd(BaseModel):
+    student_roll_number:str
+    result: dict
+    is_deleted: bool = False
+
+
+class BulkResultEntry(BaseModel):
+    exam_id: int
+    data: List[ResultEntryFrontEnd]
+
+def get_grade(db=None, percentage=None, class_id=None):
+    grade = db.query(Grades)\
+        .join(grades_classes_association)\
+        .filter(
+            Grades.percent_from <= percentage,
+            Grades.percent_upto >= percentage,
+            grades_classes_association.c.class_id == class_id
+        ).first()
+    if grade is None:
+        return None
+    return grade.grade_name
+
+
+def generate_result(exam_subjects=None, result=None, class_id=None, db=None):
+    result_data = {"marks": []}
     total_marks = 0
     total_obtained_marks = 0
+
     for exam_subject in exam_subjects:
         subject_name = exam_subject.subject.subject_name
         subject_marks = result.get(subject_name, 0)
+        full_marks = exam_subject.full_marks
+
         row = {
             "subject_name": subject_name,
-            "full_marks": exam_subject.full_marks,
+            "full_marks": full_marks,
             "obtained_marks": subject_marks,
-            "grade": "A"
+            "percentage": round((subject_marks / full_marks) * 100, 2),
+            "grade": None 
         }
-        marks.append(row)
-        total_marks += exam_subject.full_marks
+
+        result_data["marks"].append(row)
+        total_marks += full_marks
         total_obtained_marks += subject_marks
 
-    result_data["marks"] = marks
+    overall_percentage = round((total_obtained_marks / total_marks) * 100, 2)
+
+    for row in result_data["marks"]:
+        row["grade"] =get_grade(db=db, percentage=row["percentage"], class_id=class_id)
+
     result_data["total_marks"] = total_marks
     result_data["total_obtained_marks"] = total_obtained_marks
-    result_data["percentage"] = round((total_obtained_marks / total_marks) * 100, 2)
-    result_data["grade"] = "A"
+    result_data["percentage"] = overall_percentage
+    result_data["grade"] = get_grade(db=db, percentage=overall_percentage, class_id=class_id)
+
     return result_data
+
 
 @router.post("/result_entry")
 async def result_entry(result_entry: ResultEntryBase, db: Session = Depends(get_db)):
@@ -59,7 +92,7 @@ async def result_entry(result_entry: ResultEntryBase, db: Session = Depends(get_
     if is_student_exist is not None:
         return HTTPException(status_code=404, detail="Result Already Exist")
     try:
-        result_data = generate_result(exam_subjects, result_entry.result)
+        result_data = generate_result(exam_subjects=exam_subjects, result=result_entry.result, class_id=parent_exam.class_id,db=db)
         result_entry.result = result_data
         result_entry = ResultEntry(**result_entry.dict())
         db.add(result_entry)
@@ -99,3 +132,79 @@ async def get_result_entry_by_parent_exam_id(parent_exam_id:int,db:db_dependency
         raise HTTPException(status_code=404, detail="Parent Exam Not Found")
     result_entry = get_result_data(db,"exam_id",parent_exam_id)
     return jsonable_encoder(result_entry)
+
+# create bulk result entry
+@router.post("/bulk_result_entry")
+async def bulk_result_entry(bulk_result_entry: BulkResultEntry, db: db_dependency):
+    parent_exam = (
+        db.query(ParentExam)
+        .filter(ParentExam.parent_exam_id == bulk_result_entry.exam_id)
+        .first()
+    )
+    if parent_exam is None:
+        raise HTTPException(status_code=404, detail="Parent Exam Not Found")
+    exam_subjects = (
+        db.query(Exam).filter(Exam.parent_exam_id == parent_exam.parent_exam_id).all()
+    )
+    if not exam_subjects:
+        raise HTTPException(status_code=404, detail="Exam Subjects Not Found")
+    try:
+        for result_entry in bulk_result_entry.data:
+            student = (
+                db.query(Student)
+                .filter(
+                    Student.roll_number == result_entry.student_roll_number,
+                    Student.class_id == parent_exam.class_id,
+                )
+                .first()
+            )
+            if student is None:
+                continue
+            result_data = generate_result(
+                exam_subjects=exam_subjects,
+                result=result_entry.result,
+                class_id=parent_exam.class_id,
+                db=db,
+            )
+            result = ResultEntry(
+                exam_id=parent_exam.parent_exam_id,
+                student_id=student.student_id,
+                result=result_data,
+            )
+            existing_result = (
+                db.query(ResultEntry)
+                .filter(ResultEntry.student_id == student.student_id)
+                .first()
+            )
+            if existing_result:
+                existing_result.result = result_data
+            else:
+                db.add(result)
+        db.commit()
+        return succes_response(data="", msg="Result Entry Created Successfully")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+
+# get result entry by student_id and parent_exam_id
+@router.get("/get_result_entry_by_student_id_and_parent_exam_id/")
+async def get_result_entry_by_student_id_and_parent_exam_id(student_id:int,parent_exam_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
+    parent_exam = db.query(ParentExam).filter(ParentExam.parent_exam_id == parent_exam_id).first()
+    if parent_exam is None:
+        raise HTTPException(status_code=404, detail="Parent Exam Not Found")
+    student = db.query(Student).filter(Student.student_id == student_id).first()
+    if student is None:
+        raise HTTPException(status_code=404, detail="Student Not Found")
+    try:
+        result_entry =(
+            db.query(ResultEntry)
+            .join(ParentExam,ParentExam.parent_exam_id == ResultEntry.exam_id)
+            .join(Student,Student.student_id == ResultEntry.student_id)
+            .options(joinedload(ResultEntry.parent_exam).load_only(ParentExam.parent_exam_name))
+            .options(joinedload(ResultEntry.student).load_only(Student.student_name,Student.roll_number))
+            .filter(ResultEntry.student_id == student_id,ResultEntry.exam_id == parent_exam_id)
+            .first()
+        )
+        return succes_response(data=result_entry,msg="Result Entry Found Successfully")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error While Getting: {str(e)}")
+

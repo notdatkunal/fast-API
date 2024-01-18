@@ -140,7 +140,7 @@ async def create_fake(institute_id:int,range_:int,db:db_dependency):
             gender=random.choice(["Male","FeMale"]),
             date_of_birth=fake.date(),
             blood_group=random.choice(["A+","A-","B+","B-","AB+","AB-","O+","O-"]),
-            roll_number="",
+            roll_number=f"{institute_id}-{_}",
             address=fake.address(),
             phone_number=''.join(["{}".format(random.randint(0, 9)) for num in range(0, 10)]),
             email=fake.email(),

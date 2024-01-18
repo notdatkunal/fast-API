@@ -5,6 +5,7 @@ sys.path.append("..")
 from router.basic_import import *
 from models.assignments import Assignments,AssignmentSubmission
 from models.classes import Classes,Sections
+from models.institute import Institute
 from router.utility import succes_response
 from sqlalchemy import Column,ForeignKey,Integer
 from sqlalchemy.orm import joinedload,Load,load_only
@@ -53,6 +54,12 @@ def genarete_slug(title="",db=None):
 # create assignment
 @router.post("/create_assignment/")
 async def create_assignment(assignment:AssignmentsBase,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
+    if db.query(Classes).filter(Classes.class_id == assignment.class_id).first() is None:
+        raise HTTPException(status_code=404, detail="Class not found")
+    if db.query(Sections).filter(Sections.section_id == assignment.section_id).first() is None:
+        raise HTTPException(status_code=404, detail="Section not found")
+    if db.query(Institute).filter(Institute.id == assignment.institute_id).first() is None:
+        raise HTTPException(status_code=404, detail="Institute not found")
     try:
         new_assignment = Assignments(**assignment.dict())
         new_assignment.assignment_slug = genarete_slug(assignment.assignment_title,db)
@@ -81,7 +88,7 @@ async def get_assignments_institute_wise(institution_id: int, db: Session = Depe
 # get_assignment_by_field
 @router.get("/get_assignment_by_field/{field_name}/{field_value}/")
 async def get_assignment_by_field(field_name:str,field_value:str,db:Session = Depends(get_db),current_user: str = Depends(is_authenticated)):
-    assignment = ModelManager.get_data_by_field(db.query(Assignments),field_name,field_value,Assignments)
+    assignment = get_assignment_by_filter(db,field_name,field_value)
     return jsonable_encoder(assignment)
 
 # get_assignment_by_id

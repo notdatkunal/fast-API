@@ -100,14 +100,14 @@ async def update_assignment_submission(assignment_submission_id:int,assignment_s
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 # delete assignment submission
+@router.delete("/delete_assignment_submission/")
 async def delete_assignment_submission(assignment_submission_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
     assignment_submission_instance = db.query(AssignmentSubmission).filter(AssignmentSubmission.id == assignment_submission_id).first()
     if assignment_submission_instance is None:
         raise HTTPException(status_code=404, detail="Assignment submission not found")
     try:
-        assignment_submission_instance.is_deleted = True
+        db.delete(assignment_submission_instance)
         db.commit()
-        assignment_submission_instance = get_assgiment_submission(db,"id",assignment_submission_instance.id)
-        return succes_response(assignment_submission_instance,msg="Assignment Deleted Successfully")
+        return succes_response(data="",msg="Assignment Deleted Successfully")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

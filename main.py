@@ -1,7 +1,6 @@
 import regex
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-# importing of account router
 from router import institute
 from router.account_module import accounts
 from router.classes_module import sections,subjects,classes
@@ -17,7 +16,6 @@ from router.attendance import student_attendance,staff_attendance
 from router.exams import parent_exam,exam,result
 from router.fee_module import fees,student_fee
 from router.activity_module import activity
-from router.manger_module import s
 from router.users.login import *
 from router import azure_blobs
 app = FastAPI(
