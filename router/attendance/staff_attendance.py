@@ -82,6 +82,28 @@ def get_staff_attendance(staff_id, db):
         return {"absent_percentage": absent_percentage, "present_percentage": present_percentage, "leave_percentage": leave_percentage}
     return {"absent_percentage": 0, "present_percentage": 0, "leave_percentage": 0}
 
+def get_staff_attendance(staff_id, db):
+    absent_count = (
+        db.query(StaffAttendance)
+        .filter(StaffAttendance.staff_id == staff_id, StaffAttendance.attendance_status == "Absent")
+        .count()
+    )
+    present_count = (
+        db.query(StaffAttendance)
+        .filter(StaffAttendance.staff_id == staff_id, StaffAttendance.attendance_status == "Present")
+        .count()
+    )
+    total_attendance_count = (
+        db.query(StaffAttendance)
+        .filter(StaffAttendance.staff_id == staff_id)
+        .count()
+    )
+    if total_attendance_count > 0:
+        absent_percentage = round((absent_count / total_attendance_count) * 100,2)
+        present_percentage = round((present_count / total_attendance_count) * 100,2)
+        return {"absent_percentage": absent_percentage, "present_percentage": present_percentage}
+    return {"absent_percentage": 0, "present_percentage": 0}
+
 
 # create staff attendance
 @router.post("/create_staff_attendance/")
@@ -120,7 +142,11 @@ async def get_all_staff_attendance(db:db_dependency,current_user: str = Depends(
 @router.get("/get_staff_attendance_by_institute_id/")
 async def get_staff_attendance_by_institute_id(institute_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
     attendance_data = get_staff_attendance_by_filter(db,"institute_id",institute_id)
-    return jsonable_encoder(attendance_data)
+    payload = {
+        "attendance_data":attendance_data,
+        "attendance_percentage":get_staff_attendance_by_filter(db,"institute_id",institute_id)
+    }
+    return jsonable_encoder(payload)
 
 
 # get staff attendance by staff id

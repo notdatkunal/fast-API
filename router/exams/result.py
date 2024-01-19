@@ -206,6 +206,7 @@ async def get_result_entry_by_parent_exam_id(parent_exam_id:int,db:db_dependency
 async def bulk_result_entry(bulk_result_entry: BulkResultEntry, db: db_dependency):
     exam_id = bulk_result_entry.exam_id
     result_data = bulk_result_entry.data
+    print(result_data)
     parent_exam = (
         db.query(ParentExam)
         .filter(ParentExam.parent_exam_id == exam_id)
@@ -218,7 +219,7 @@ async def bulk_result_entry(bulk_result_entry: BulkResultEntry, db: db_dependenc
     )
     if not exam_subjects:
         raise HTTPException(status_code=404, detail="Exam Subjects Not Found")
-    
+    exam_subjects = [{"subject_name":exam_subject.subject.subject_name,"full_marks":exam_subject.full_marks} for exam_subject in exam_subjects]
     tasks = []
     for result_entry in result_data:
         student = (
@@ -231,34 +232,35 @@ async def bulk_result_entry(bulk_result_entry: BulkResultEntry, db: db_dependenc
         )
         if student is None:
             continue
-
         # Await the result of the asynchronous task
-        result_data_task = asyncio.create_task(
+        tasks.append(asyncio.create_task(
             generate_result(
                 exam_subjects=exam_subjects,
-                result=result_entry[2],
+                results=result_entry[2:],
                 class_id=parent_exam.class_id,
                 db=db,
             )
-        )
-        await result_data_task  # Await the result of the task
-
-        result = ResultEntry(
-            exam_id=parent_exam.parent_exam_id,
-            student_id=student.student_id,
-            result=result_data_task.result  # Use the result of the awaited task
-        )
-        existing_result = (
-            db.query(ResultEntry)
-            .filter(ResultEntry.student_id == student.student_id)
-            .first()
-        )
-        if existing_result:
-            existing_result.result = result_data_task.result
-            db.commit()
-        else:
-            db.add(result)
-
+        ))
+    results = await asyncio.gather(*tasks)
+    try:
+        for i in range(len(result_data)):
+            result = ResultEntry(
+                exam_id=parent_exam.parent_exam_id,
+                student_id=student.student_id,
+                result=results[i],
+            )
+            existing_result = (
+                db.query(ResultEntry)
+                .filter(ResultEntry.student_id == student.student_id)
+                .first()
+            )
+            if existing_result:
+                existing_result.result = results[i]
+            else:
+                db.add(result)
+        db.commit()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
     return {"success": True, "msg": "Bulk result entry completed successfully"}
 
 
@@ -289,50 +291,35 @@ async def get_result_entry_by_student_id_and_parent_exam_id(student_id:int,paren
     
 
 
-async def generate_result(exam_subjects=None, result=None, class_id=None, db=None):
-    subject_grades = {exam_subject.subject.subject_name: exam_subject for exam_subject in exam_subjects}
-    
-    total_marks = 0
-    total_obtained_marks = 0
-    marks_data = []
-
-    for subject_name, subject_marks in result.items():
-        if subject_name not in subject_grades:
-            continue
-
-        exam_subject = subject_grades[subject_name]
-        full_marks = exam_subject.full_marks
-
+async def generate_result(exam_subjects=None, results=None, class_id=None, db=None):
+    async def calculate_marks(ind, exam_subjects, results, marks_data, total_marks, total_obtained_marks):
+        if ind == len(exam_subjects):
+            overall_percentage = round((total_obtained_marks / total_marks) * 100, 2)
+            result_data = {
+                "marks": marks_data,
+                "total_marks": total_marks,
+                "total_obtained_marks": total_obtained_marks,
+                "percentage": overall_percentage,
+                "grade": "A"
+            }
+            return result_data
+        exam_subject = exam_subjects[ind]
+        subject = exam_subject["subject_name"]
+        full_marks = exam_subject["full_marks"]
+        subject_marks = results[ind]
         row = {
-            "subject_name": subject_name,
+            "subject_name": subject,
             "full_marks": full_marks,
             "obtained_marks": subject_marks,
             "percentage": round((subject_marks / full_marks) * 100, 2),
             "grade": None
         }
-
         marks_data.append(row)
         total_marks += full_marks
         total_obtained_marks += subject_marks
-
-    overall_percentage = round((total_obtained_marks / total_marks) * 100, 2)
-
-    # Fetch grades in bulk for all subjects
-    grades = get_grades_in_bulk(db=db, percentages=[row["percentage"] for row in marks_data], class_id=class_id)
-
-    for row, grade in zip(marks_data, grades):
-        row["grade"] = grade
-
-    result_data = {
-        "marks": marks_data,
-        "total_marks": total_marks,
-        "total_obtained_marks": total_obtained_marks,
-        "percentage": overall_percentage,
-        "grade": get_grade(db=db, percentage=overall_percentage, class_id=class_id)
-    }
-
-    return result_data
-
+        return calculate_marks(ind + 1, exam_subjects, results, marks_data, total_marks, total_obtained_marks)
+    result  = await asyncio.create_task(calculate_marks(0, exam_subjects, results, [], 0, 0))
+    return result
 async def get_grades_in_bulk(db=None, percentages=None, class_id=None):
     grades = db.query(Grades)\
         .join(grades_classes_association, grades_classes_association.c.class_id == class_id)\

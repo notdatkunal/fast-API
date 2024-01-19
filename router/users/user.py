@@ -109,10 +109,9 @@ async def update_user_password(user_id: int, user_password: str, current_user: s
 async def delete_user(user_id: int, current_user: str = Depends(is_authenticated), db: Session = Depends(get_db)):
     user_data = db.query(Users).filter(Users.user_id == user_id).first()
     if user_data is not None:
-        user_data.is_deleted = True
+        db.delete(user_data)
         db.commit()
-        db.refresh(user_data)
-        return succes_response(user_data,msg="User Deleted Successfully")
+        return succes_response(data="",msg="User Deleted Successfully")
     else:
         raise HTTPException(status_code=404, detail="User not found")
     
