@@ -225,8 +225,6 @@ async def get_result_entry_by_student_id_and_parent_exam_id(student_id:int,paren
         return succes_response(data=result_entry,msg="Result Entry Found Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Getting: {str(e)}")
-    
-
 
 async def generate_result(exam_subjects=None, result=None, class_id=None, db=None):
     result_data = {"marks": []}

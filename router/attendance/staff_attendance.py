@@ -58,21 +58,21 @@ def get_staff_attendance_by_filter(db=None,filter_column:str=None,filter_value:s
         raise HTTPException(status_code=404, detail=str(e))
     
 
-def get_staff_attendance(staff_id, db):
+def get_staff_attendance_by_institute(institute_id,db):
     absent_count = (
         db.query(StaffAttendance)
-        .filter(StaffAttendance.staff_id == staff_id, StaffAttendance.attendance_status == "Absent")
+        .filter(StaffAttendance.institute_id == institute_id, StaffAttendance.attendance_status == "Absent")
         .count()
     )
     present_count = (
         db.query(StaffAttendance)
-        .filter(StaffAttendance.staff_id == staff_id, StaffAttendance.attendance_status == "Present")
+        .filter(StaffAttendance.institute_id == institute_id, StaffAttendance.attendance_status == "Present")
         .count()
     )
     
     total_attendance_count = (
         db.query(StaffAttendance)
-        .filter(StaffAttendance.staff_id == staff_id)
+        .filter(StaffAttendance.institute_id == institute_id)
         .count()
     )
     if total_attendance_count > 0:
@@ -144,7 +144,7 @@ async def get_staff_attendance_by_institute_id(institute_id:int,db:db_dependency
     attendance_data = get_staff_attendance_by_filter(db,"institute_id",institute_id)
     payload = {
         "attendance_data":attendance_data,
-        "attendance_percentage":get_staff_attendance_by_filter(db,"institute_id",institute_id)
+        "attendance_percentage":get_staff_attendance_by_institute(institute_id,db)
     }
     return jsonable_encoder(payload)
 

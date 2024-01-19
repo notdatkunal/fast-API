@@ -105,4 +105,17 @@ async def delete_all_student_installments(student_id:int,db:db_dependency,curren
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+@router.patch("/update_student_installment/")
+async def update_student_installment(installment_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
+    installment = db.query(StudentInstallemnt).filter(StudentInstallemnt.installment_id == installment_id).first()
+    if installment is None:
+        raise HTTPException(status_code=404, detail="Installment not found")
+    try:
+        installment.installment_status = True
+        installment.installment_paid_date = date.today().strftime("%d-%m-%Y")
+        db.commit()
+        db.refresh(installment)
+        return succes_response(data=installment,msg="Installment Updated Successfully")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 

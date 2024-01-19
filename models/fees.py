@@ -52,5 +52,13 @@ class StudentInstallemnt(BASE):
     installment_paid_date = Column(Date, nullable=True)
     installment_status = Column(Boolean, default=False)
 
+    # change installment_paid_date to "%d-%m-%Y" format
+    def __init__(self, *args, **kwargs):
+        super(StudentInstallemnt, self).__init__(*args, **kwargs)
+        if self.installment_paid_date is not None:
+            self.installment_paid_date = self.installment_paid_date.strftime("%d-%m-%Y")
+
+
+
 
 
