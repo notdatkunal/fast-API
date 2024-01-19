@@ -113,6 +113,7 @@ def get_result_data(db,filder_by,filder_value):
         .all()
     )
     return result_data
+
     
 # get result all result entry
 @router.get("/get_all_result_entry/")
@@ -125,28 +126,50 @@ async def get_all_result_entry(db:db_dependency,current_user: str = Depends(is_a
     
 
 # counting result according to grade
-def counting_grades(db:db_dependency,parent_exam_id):
+
+def counting_grades(db: db_dependency, parent_exam_id):
     try:
         count = (
-            db.query(ResultEntry)
+            db.query(ResultEntry.result["grade"].label("grade"), func.count().label("grade_count"))
             .filter(ResultEntry.exam_id == parent_exam_id)
             .group_by(ResultEntry.result["grade"])
+            .all()
         )
-        return count
+        return [{"grade": row.grade, "grade_count": row.grade_count} for row in count]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Getting: {str(e)}")
 
+def calculate_ranking(db: db_dependency, parent_exam_id):
+    try:
+        result = (
+            db.query(
+                ResultEntry.student_id,
+                ResultEntry.result["percentage"].label("percentage"),
+                func.dense_rank().over(order_by=ResultEntry.result["percentage"].desc()).label("rank")
+            )
+            .filter(ResultEntry.exam_id == parent_exam_id)
+            .order_by(ResultEntry.result["percentage"].desc())
+            .all()
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error While Getting: {str(e)}")
 
 # get result entry by parent_exam_id
 @router.get("/get_result_entry_by_parent_exam_id/")
 async def get_result_entry_by_parent_exam_id(parent_exam_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
     parent_exam = db.query(ParentExam).filter(ParentExam.parent_exam_id == parent_exam_id).first()
     count = counting_grades(db,parent_exam_id)
-    print(count)
     if parent_exam is None:
         raise HTTPException(status_code=404, detail="Parent Exam Not Found")
     result_entry = get_result_data(db,"exam_id",parent_exam_id)
-    return jsonable_encoder(result_entry)
+    rank = calculate_ranking(db,parent_exam_id)
+    print(rank)
+    payload = {
+        "result_entry": result_entry,
+        "count": jsonable_encoder(count)
+    }
+    return succes_response(payload)
 
 # create bulk result entry
 @router.post("/bulk_result_entry")

@@ -19,6 +19,13 @@ class UserBase(BaseModel):
     institute_id: int
     user_photo_url: str = Field(default="https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png")
 
+class UpdateUser(BaseModel):
+    user_name: str = Field(min_length=3, max_length=30)
+    user_email: str = Field(min_length=3, max_length=30)
+    user_phone_number: str = Field(min_length=10, max_length=10)
+    user_role: str = Field(min_length=3, max_length=30)
+    user_photo_url: str = Field(default="https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png")
+
     
 # create user
 @router.post("/create_user/")
@@ -66,6 +73,31 @@ async def update_user(user_id: int, user: UserBase, current_user: str = Depends(
     if user_data is not None:
         for key, value in user.dict(exclude_unset=True).items():
             setattr(user_data, key, value)
+        db.commit()
+        db.refresh(user_data)    
+        return succes_response(user_data,msg="User Updated Successfully")
+    else:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+
+# patch method for updating user
+@router.patch("/update_user_partial/")
+async def update_user(user_id: int, user: UpdateUser, current_user: str = Depends(is_authenticated), db: Session = Depends(get_db)):
+    user_data = db.query(Users).filter(Users.user_id == user_id).first()
+    if user_data is not None:
+        for key, value in user.dict(exclude_unset=True).items():
+            setattr(user_data, key, value)
+        db.commit()
+        db.refresh(user_data)    
+        return succes_response(user_data,msg="User Updated Successfully")
+    else:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+@router.patch("/update_user_password/")
+async def update_user_password(user_id: int, user_password: str, current_user: str = Depends(is_authenticated), db: Session = Depends(get_db)):
+    user_data = db.query(Users).filter(Users.user_id == user_id).first()
+    if user_data is not None:
+        user_data.user_password = get_password_hash(user_password)
         db.commit()
         db.refresh(user_data)    
         return succes_response(user_data,msg="User Updated Successfully")

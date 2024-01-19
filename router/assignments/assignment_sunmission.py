@@ -111,3 +111,24 @@ async def delete_assignment_submission(assignment_submission_id:int,db:db_depend
         return succes_response(data="",msg="Assignment Deleted Successfully")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    
+# checking where student is valid and has submitted the assignment or not
+@router.get("/check_student_assignment_submission/")
+async def check_student_assignment_submission(student_roll_number: str, assignment_id: int, db: db_dependency, current_user: str = Depends(is_authenticated)):
+    student = db.query(Student).filter(Student.roll_number == student_roll_number).first()
+    if student is None:
+        raise HTTPException(status_code=404, detail="Student not found")
+    assignment = db.query(Assignments).filter(Assignments.id == assignment_id, Assignments.class_id == student.class_id).first()
+    if assignment is None:
+        raise HTTPException(status_code=404, detail="Student is not in the class of the assignment")
+    assignment_submission_instance = db.query(AssignmentSubmission).filter(
+        AssignmentSubmission.student_id == student.student_id,
+        AssignmentSubmission.assignment_id == assignment_id
+    ).first()
+    if assignment_submission_instance is not None:
+        raise HTTPException(status_code=404, detail="Student has already submitted the assignment")
+    else:
+        return succes_response(data="", msg="Student is valid and has not submitted the assignment")
+
+    
+
