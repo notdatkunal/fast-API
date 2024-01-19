@@ -82,16 +82,17 @@ async def update_user(user_id: int, user: UserBase, current_user: str = Depends(
 
 # patch method for updating user
 @router.patch("/update_user_partial/")
-async def update_user(user_id: int,current_user: str = Depends(is_authenticated), db: Session = Depends(get_db),user_data: dict ={}):
-    user_data = db.query(Users).filter(Users.user_id == user_id).first()
-    if user_data is not None:
-        for key, value in user_data(exclude_unset=True).items():
-            setattr(user_data, key, value)
+async def update_user(user_id: int, current_user: str = Depends(is_authenticated), db: Session = Depends(get_db), user_data: dict = {}):
+    user_instance = db.query(Users).filter(Users.user_id == user_id).first()
+    if user_instance is not None:
+        for key, value in user_data.items():
+            setattr(user_instance, key, value)
         db.commit()
-        db.refresh(user_data)    
-        return succes_response(user_data,msg="User Updated Successfully")
+        db.refresh(user_instance)
+        return succes_response(user_instance, msg="User Updated Successfully")
     else:
         raise HTTPException(status_code=404, detail="User not found")
+
     
 @router.patch("/update_user_password/")
 async def update_user_password(user_id: int, user_password: str, current_user: str = Depends(is_authenticated), db: Session = Depends(get_db)):
