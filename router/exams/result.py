@@ -91,18 +91,17 @@ async def get_all_result_entry(db:db_dependency,current_user: str = Depends(is_a
     
 
 # counting result according to grade
-
-# def counting_grades(db: db_dependency, parent_exam_id):
-#     try:
-#         count = (
-#             db.query(ResultEntry.result["grade"].label("grade"), func.count().label("grade_count"))
-#             .filter(ResultEntry.exam_id == parent_exam_id)
-#             .group_by(ResultEntry.result["grade"])
-#             .all()
-#         )
-#         return [{"grade": row.grade, "grade_count": row.grade_count} for row in count]
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error While Getting: {str(e)}")
+def counting_grades(db: db_dependency, parent_exam_id):
+    try:
+        count = (
+            db.query(ResultEntry.result["grade"].label("grade"), func.count().label("grade_count"))
+            .filter(ResultEntry.exam_id == parent_exam_id)
+            .group_by(ResultEntry.result["grade"])
+            .all()
+        )
+        return [{"grade": row.grade, "grade_count": row.grade_count} for row in count]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error While Getting: {str(e)}")
 
 async def calculate_ranking(parent_exam_id: int, db: db_dependency):
     try:
@@ -140,73 +139,18 @@ async def get_result_entry_by_parent_exam_id(parent_exam_id:int,db:db_dependency
         raise HTTPException(status_code=404, detail="Parent Exam Not Found")
     result_entry = get_result_data(db,"exam_id",parent_exam_id)
     rank = await asyncio.create_task(calculate_ranking(parent_exam_id, db))
-    print(rank)
     payload = {
         "result_entry": result_entry,
-        "count": jsonable_encoder(count)
+        "count": jsonable_encoder(count),
+        "rank": rank,
     }
     return succes_response(payload)
 
 # create bulk result entry
 @router.post("/bulk_result_entry")
-# async def bulk_result_entry(bulk_result_entry: BulkResultEntry, db: db_dependency):
-#     exam_id = bulk_result_entry.exam_id
-#     result_data = bulk_result_entry.data
-#     parent_exam = (
-#         db.query(ParentExam)
-#         .filter(ParentExam.parent_exam_id == exam_id)
-#         .first()
-#     )
-#     if parent_exam is None:
-#         raise HTTPException(status_code=404, detail="Parent Exam Not Found")
-#     exam_subjects = (
-#         db.query(Exam).filter(Exam.parent_exam_id == parent_exam.parent_exam_id).all()
-#     )
-#     if not exam_subjects:
-#         raise HTTPException(status_code=404, detail="Exam Subjects Not Found")
-#     try:
-#         for result_entry in result_data:
-#             student = (
-#                 db.query(Student)
-#                 .filter(
-#                     Student.roll_number == result_entry[1],
-#                     Student.class_id == parent_exam.class_id,
-#                 )
-#                 .first()
-#             )
-#             if student is None:
-#                 continue
-#             result_data = asyncio.create_task(
-#                 generate_result(
-#                     exam_subjects=exam_subjects,
-#                     result=result_entry[2],
-#                     class_id=parent_exam.class_id,
-#                     db=db,
-#                 )
-#             )
-#             result = ResultEntry(
-#                 exam_id=parent_exam.parent_exam_id,
-#                 student_id=student.student_id,
-#                 result=result_data,
-#             )
-#             existing_result = (
-#                 db.query(ResultEntry)
-#                 .filter(ResultEntry.student_id == student.student_id)
-#                 .first()
-#             )
-#             if existing_result:
-#                 existing_result.result = result_data
-#             else:
-#                 db.add(result)
-#         db.commit()
-#         return succes_response(data="", msg="Result Entry Created Successfully")
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
-
 async def bulk_result_entry(bulk_result_entry: BulkResultEntry, db: db_dependency):
     exam_id = bulk_result_entry.exam_id
     result_data = bulk_result_entry.data
-    print(result_data)
     parent_exam = (
         db.query(ParentExam)
         .filter(ParentExam.parent_exam_id == exam_id)
@@ -219,7 +163,7 @@ async def bulk_result_entry(bulk_result_entry: BulkResultEntry, db: db_dependenc
     )
     if not exam_subjects:
         raise HTTPException(status_code=404, detail="Exam Subjects Not Found")
-    exam_subjects = [{"subject_name":exam_subject.subject.subject_name,"full_marks":exam_subject.full_marks} for exam_subject in exam_subjects]
+    exam_subjects = [{"subject_name": exam_subject.subject.subject_name, "full_marks": exam_subject.full_marks} for exam_subject in exam_subjects]
     tasks = []
     for result_entry in result_data:
         student = (
@@ -233,38 +177,18 @@ async def bulk_result_entry(bulk_result_entry: BulkResultEntry, db: db_dependenc
         if student is None:
             continue
         # Await the result of the asynchronous task
-        tasks.append(asyncio.create_task(
+        tasks.append(
             generate_result(
+                parent_exam_id=exam_id,
+                student_id=student.student_id,
                 exam_subjects=exam_subjects,
                 results=result_entry[2:],
                 class_id=parent_exam.class_id,
                 db=db,
             )
-        ))
-    results = await asyncio.gather(*tasks)
-    try:
-        for i in range(len(result_data)):
-            result = ResultEntry(
-                exam_id=parent_exam.parent_exam_id,
-                student_id=student.student_id,
-                result=results[i],
-            )
-            existing_result = (
-                db.query(ResultEntry)
-                .filter(ResultEntry.student_id == student.student_id)
-                .first()
-            )
-            if existing_result:
-                existing_result.result = results[i]
-            else:
-                db.add(result)
-        db.commit()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+        )
+    await asyncio.gather(*tasks)
     return {"success": True, "msg": "Bulk result entry completed successfully"}
-
-
-
 
 # get result entry by student_id and parent_exam_id
 @router.get("/get_result_entry_by_student_id_and_parent_exam_id/")
@@ -289,9 +213,7 @@ async def get_result_entry_by_student_id_and_parent_exam_id(student_id:int,paren
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Getting: {str(e)}")
     
-
-
-async def generate_result(exam_subjects=None, results=None, class_id=None, db=None):
+async def generate_result(parent_exam_id=None, student_id=None, exam_subjects=None, results=None, class_id=None, db=None):
     async def calculate_marks(ind, exam_subjects, results, marks_data, total_marks, total_obtained_marks):
         if ind == len(exam_subjects):
             overall_percentage = round((total_obtained_marks / total_marks) * 100, 2)
@@ -317,9 +239,68 @@ async def generate_result(exam_subjects=None, results=None, class_id=None, db=No
         marks_data.append(row)
         total_marks += full_marks
         total_obtained_marks += subject_marks
-        return calculate_marks(ind + 1, exam_subjects, results, marks_data, total_marks, total_obtained_marks)
-    result  = await asyncio.create_task(calculate_marks(0, exam_subjects, results, [], 0, 0))
-    return result
+        return await calculate_marks(ind + 1, exam_subjects, results, marks_data, total_marks, total_obtained_marks)
+
+    result = await calculate_marks(0, exam_subjects, results, [], 0, 0)
+    result_entry = ResultEntry(
+        exam_id=parent_exam_id,
+        student_id=student_id,
+        result=result,
+        is_deleted=False
+    )
+    existing_result = db.query(ResultEntry).filter(ResultEntry.exam_id == parent_exam_id, ResultEntry.student_id == student_id).first()
+    if existing_result is not None:
+        existing_result.result = result
+        db.commit()
+    else:
+        db.add(result_entry)
+        db.commit()
+        db.refresh(result_entry)
+
+async def generate_result(parent_exam_id=None, student_id=None, exam_subjects=None, results=None, class_id=None, db=None):
+    async def calculate_marks(ind, exam_subjects, results, marks_data, total_marks, total_obtained_marks):
+        if ind == len(exam_subjects):
+            overall_percentage = round((total_obtained_marks / total_marks) * 100, 2)
+            result_data = {
+                "marks": marks_data,
+                "total_marks": total_marks,
+                "total_obtained_marks": total_obtained_marks,
+                "percentage": overall_percentage,
+                "grade": "A"
+            }
+            return result_data
+        exam_subject = exam_subjects[ind]
+        subject = exam_subject["subject_name"]
+        full_marks = exam_subject["full_marks"]
+        subject_marks = results[ind]
+        row = {
+            "subject_name": subject,
+            "full_marks": full_marks,
+            "obtained_marks": subject_marks,
+            "percentage": round((subject_marks / full_marks) * 100, 2),
+            "grade": None
+        }
+        marks_data.append(row)
+        total_marks += full_marks
+        total_obtained_marks += subject_marks
+        return await calculate_marks(ind + 1, exam_subjects, results, marks_data, total_marks, total_obtained_marks)
+
+    result = await calculate_marks(0, exam_subjects, results, [], 0, 0)
+    result_entry = ResultEntry(
+        exam_id=parent_exam_id,
+        student_id=student_id,
+        result=result,
+        is_deleted=False
+    )
+    existing_result = db.query(ResultEntry).filter(ResultEntry.exam_id == parent_exam_id, ResultEntry.student_id == student_id).first()
+    if existing_result is not None:
+        existing_result.result = result
+        db.commit()
+    else:
+        db.add(result_entry)
+        db.commit()
+        db.refresh(result_entry)
+
 async def get_grades_in_bulk(db=None, percentages=None, class_id=None):
     grades = db.query(Grades)\
         .join(grades_classes_association, grades_classes_association.c.class_id == class_id)\

@@ -82,10 +82,10 @@ async def update_user(user_id: int, user: UserBase, current_user: str = Depends(
 
 # patch method for updating user
 @router.patch("/update_user_partial/")
-async def update_user(user_id: int, user: UpdateUser, current_user: str = Depends(is_authenticated), db: Session = Depends(get_db)):
+async def update_user(user_id: int,current_user: str = Depends(is_authenticated), db: Session = Depends(get_db),user_data: dict ={}):
     user_data = db.query(Users).filter(Users.user_id == user_id).first()
     if user_data is not None:
-        for key, value in user.dict(exclude_unset=True).items():
+        for key, value in user_data(exclude_unset=True).items():
             setattr(user_data, key, value)
         db.commit()
         db.refresh(user_data)    
