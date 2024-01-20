@@ -14,4 +14,5 @@ from .attendance import StudentAttendance
 from .examination import ParentExam,Exam,ResultEntry
 from .fees import Fees,ClassInstallment,studentDiscount,StudentInstallemnt
 from .activity import Activity
+from .education import EducationYear
 

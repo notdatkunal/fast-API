@@ -172,12 +172,10 @@ async def create_bulk_staff_attendance(bulk_data: BulkData, db: db_dependency):
                 continue
             attendance = StaffAttendance(**data.dict())
             db.add(attendance)
-            db.flush() 
             db.refresh(attendance)
             db.commit()  
             attendance = get_staff_attendance_by_filter(db,"id",attendance.id)
             payload.append(attendance)
-        
         return succes_response(data=payload, msg="Attendance Taken Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")

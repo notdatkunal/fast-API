@@ -1,5 +1,7 @@
 from datetime import date, timedelta
 import sys
+
+from sqlalchemy import func
 sys.path.append("..")
 from router.basic_import import *
 from router.utility import succes_response
@@ -67,13 +69,15 @@ async def post_student_fee(student_fee:StudentFeeBase,db:db_dependency,current_u
 async def get_all_student_installments(student_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
     class_id = (db.query(Student).filter(Student.student_id == student_id).first()).class_id
     fee_data = (
-            db.query(Fees)
-            .join(fees_installments_association)
-            .join(ClassInstallment)
-            .filter(Fees.class_id == class_id)
-            .options(contains_eager(Fees.class_installments))
-            .all()
+        db.query(
+            Fees
         )
+        .join(fees_installments_association)
+        .join(ClassInstallment)
+        .filter(Fees.class_id == class_id)
+        .options(contains_eager(Fees.class_installments))
+        .all()
+    )
     try:
         student_fee = (
             db.query(StudentInstallemnt)
@@ -112,9 +116,10 @@ async def update_student_installment(installment_id:int,db:db_dependency,current
         raise HTTPException(status_code=404, detail="Installment not found")
     try:
         installment.installment_status = True
-        installment.installment_paid_date = date.today().strftime("%d-%m-%Y")
+        installment.installment_paid_date = date.today()
         db.commit()
         db.refresh(installment)
+        installment.installment_paid_date = installment.installment_paid_date.strftime("%d-%m-%Y")
         return succes_response(data=installment,msg="Installment Updated Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

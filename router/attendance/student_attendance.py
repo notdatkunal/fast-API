@@ -183,19 +183,24 @@ async def create_bulk_student_attendance(bulk_data: BulkData, db: db_dependency)
     payload = []
     try:
         for data in student_data:
-            is_having_attendance = db.query(StudentAttendance).filter(StudentAttendance.attendance_date == data.attendance_date,StudentAttendance.student_id == data.student_id).first()
+            is_having_attendance = db.query(StudentAttendance).filter(
+                StudentAttendance.attendance_date == data.attendance_date,
+                StudentAttendance.student_id == data.student_id
+            ).first()
             if is_having_attendance is not None:
+                print("Attendance Already Taken")
                 continue
             attendance = StudentAttendance(**data.dict())
             db.add(attendance)
-            db.flush() 
             db.commit()
             db.refresh(attendance)
-            attendance = get_student_attendance_by_filter(db,"id",attendance.id)
+            attendance = get_student_attendance_by_filter(db, "id", attendance.id)
             payload.append(attendance)
+            print(payload)
         return succes_response(data=payload, msg="Attendance Taken Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+
 
 @router.get("/get_attendance_by_id/")
 async def get_attendance_by_id(attendance_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
