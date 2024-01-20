@@ -2,7 +2,7 @@ trigger:
 - develop
 
 variables:
-  azureServiceConnection: 'AlongX-Azure-Account-Development'
+  azureServiceConnection: 'gurukul-prod-si-azureconnection'
   webAppName: 'gurukul-api-prod-si-as'
   resourceGroupName: 'gurukul-prod-si-rg'
   vmImageName: 'ubuntu-latest'
