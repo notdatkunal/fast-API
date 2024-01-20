@@ -174,8 +174,8 @@ async def create_bulk_staff_attendance(bulk_data: BulkData, db: db_dependency):
             db.add(attendance)
             db.refresh(attendance)
             db.commit()  
-            attendance = get_staff_attendance_by_filter(db,"id",attendance.id)
-            payload.append(attendance)
+            payload += [attendance.id]
+        payload = [get_staff_attendance_by_filter(db,"id",id)[0] for id in payload]
         return succes_response(data=payload, msg="Attendance Taken Successfully")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")

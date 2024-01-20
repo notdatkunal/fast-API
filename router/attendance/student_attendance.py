@@ -194,12 +194,16 @@ async def create_bulk_student_attendance(bulk_data: BulkData, db: db_dependency)
             db.add(attendance)
             db.commit()
             db.refresh(attendance)
-            attendance = get_student_attendance_by_filter(db, "id", attendance.id)
-            payload.append(attendance)
-            print(payload)
+            payload += [attendance.id]
+        payload = [get_student_attendance_by_filter(db,"id",id)[0] for id in payload]
+        # Return a success response with the created attendance records
         return succes_response(data=payload, msg="Attendance Taken Successfully")
+
     except Exception as e:
+        # Handle any exceptions and return an HTTP 500 error response
+        print("Error while creating attendance:", str(e))
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+
 
 
 @router.get("/get_attendance_by_id/")
