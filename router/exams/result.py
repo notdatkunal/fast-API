@@ -153,7 +153,7 @@ async def get_result_entry_by_parent_exam_id(parent_exam_id:int,db:db_dependency
 async def bulk_result_entry(bulk_result_entry: BulkResultEntry, db: db_dependency):
     start = perf_counter()
     exam_id = bulk_result_entry.exam_id
-    result_data = bulk_result_entry.data
+    result_data_list = bulk_result_entry.data
     parent_exam = (
         db.query(ParentExam)
         .filter(ParentExam.parent_exam_id == exam_id)
@@ -166,42 +166,23 @@ async def bulk_result_entry(bulk_result_entry: BulkResultEntry, db: db_dependenc
     )
     if not exam_subjects:
         raise HTTPException(status_code=404, detail="Exam Subjects Not Found")
-    exam_subjects = [{"subject_name": exam_subject.subject.subject_name, "full_marks": exam_subject.full_marks} for exam_subject in exam_subjects]
     try:
-        for result_entry in result_data:
-            student = (
-                db.query(Student)
-                .filter(
-                    Student.roll_number == result_entry[1],
-                    Student.class_id == parent_exam.class_id,
-                )
-                .first()
-            )
-            if student is None:
-                continue
-            result_data = await asyncio.create_task(
-                generate_result(exam_subjects=exam_subjects, result=result_entry[2:], class_id=parent_exam.class_id,db=db)
-                )
-            result = ResultEntry(
-                exam_id=parent_exam.parent_exam_id,
-                student_id=student.student_id,
-                result=result_data,
-            )
-            existing_result = (
-                db.query(ResultEntry)
-                .filter(ResultEntry.student_id == student.student_id)
-                .first()
-            )
-            if existing_result:
-                existing_result.result = result_data
-            else:
-                db.add(result)
+        db.bulk_insert_mappings(
+            ResultEntry,
+            [
+                *result_data_list
+            ]
+        )
         db.commit()
+        db.flush()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+    finally:
         end = perf_counter()
         print("Time Taken: ", end - start)
-        return succes_response(data="", msg="Result Entry Created Successfully")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+    return succes_response(data="", msg="Result Entry Created Successfully")
+
 
 # get result entry by student_id and parent_exam_id
 @router.get("/get_result_entry_by_student_id_and_parent_exam_id/")

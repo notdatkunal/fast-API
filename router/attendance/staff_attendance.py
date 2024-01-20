@@ -165,20 +165,38 @@ async def get_staff_attendance_by_staff_id(staff_id:int,db:db_dependency,current
 async def create_bulk_staff_attendance(bulk_data: BulkData, db: db_dependency):
     staff_data = bulk_data.data
     payload = []
+
     try:
         for data in staff_data:
-            is_having_attendance = db.query(StaffAttendance).filter(StaffAttendance.attendance_date == data.attendance_date, StaffAttendance.staff_id == data.staff_id).first()
+            is_having_attendance = db.query(StaffAttendance).filter(
+                StaffAttendance.attendance_date == data.attendance_date,
+                StaffAttendance.staff_id == data.staff_id
+            ).first()
+
             if is_having_attendance is not None:
                 continue
+
             attendance = StaffAttendance(**data.dict())
             db.add(attendance)
-            db.refresh(attendance)
-            db.commit()  
-            payload += [attendance.id]
-        payload = [get_staff_attendance_by_filter(db,"id",id)[0] for id in payload]
+            db.commit()
+
+            # Append the ID directly to payload
+            payload.append(attendance.id)
+
+        # Retrieve the attendance objects using a single query
+        payload = (
+            db.query(StaffAttendance)
+            .join(Staff,StaffAttendance.staff_id == Staff.staff_id)
+            .options(joinedload(StaffAttendance.staff).load_only(Staff.staff_name,Staff.employee_id))
+            .filter(StaffAttendance.id.in_(payload))
+            .order_by(StaffAttendance.attendance_date.desc())
+            .all()
+        )
         return succes_response(data=payload, msg="Attendance Taken Successfully")
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
+
 
 # get staff attendance by id
 @router.get("/get_staff_attendance_by_id/")
