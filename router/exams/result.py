@@ -144,7 +144,10 @@ async def get_result_entry_by_parent_exam_id(parent_exam_id:int,db:db_dependency
     print(rank)
     payload = {
         "result_entry": result_entry,
-        "count": jsonable_encoder(count)
+        "count": jsonable_encoder(count),
+        'rank': rank,
+        "student_count": len(result_entry),
+        "total_student_count": db.query(Student).filter(Student.class_id == parent_exam.class_id).count(),
     }
     return succes_response(payload)
 
@@ -167,14 +170,22 @@ async def bulk_result_entry(bulk_result_entry: BulkResultEntry, db: db_dependenc
     if not exam_subjects:
         raise HTTPException(status_code=404, detail="Exam Subjects Not Found")
     try:
-        db.bulk_insert_mappings(
-            ResultEntry,
-            [
-                *result_data_list
-            ]
-        )
+        for result_data in result_data_list:
+            is_student_exist = db.query(ResultEntry).filter(ResultEntry.student_id == result_data["student_id"]).first()
+            if is_student_exist is not None:
+                is_student_exist.result = result_data["result"]
+            else:
+                result = ResultEntry(exam_id=result_data["exam_id"], student_id=result_data["student_id"], result=result_data["result"])
+                db.add(result)
         db.commit()
-        db.flush()
+        # db.bulk_insert_mappings(
+        #     ResultEntry,
+        #     [
+        #         *result_data_list
+        #     ]
+        # )
+        # db.commit()
+        # db.flush()
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error While Creating: {str(e)}")
@@ -207,37 +218,37 @@ async def get_result_entry_by_student_id_and_parent_exam_id(student_id:int,paren
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error While Getting: {str(e)}")
 
-async def generate_result(exam_subjects=None, result=None, class_id=None, db=None):
-    result_data = {"marks": []}
-    total_marks = 0
-    total_obtained_marks = 0
-    for ind in range(len(exam_subjects)):
-        exam_subject = exam_subjects[ind]
-        subject_name = exam_subject["subject_name"]
-        subject_marks = result[1]
-        full_marks = exam_subject["full_marks"]
+# async def generate_result(exam_subjects=None, result=None, class_id=None, db=None):
+#     result_data = {"marks": []}
+#     total_marks = 0
+#     total_obtained_marks = 0
+#     for ind in range(len(exam_subjects)):
+#         exam_subject = exam_subjects[ind]
+#         subject_name = exam_subject["subject_name"]
+#         subject_marks = result[1]
+#         full_marks = exam_subject["full_marks"]
 
-        row = {
-            "subject_name": subject_name,
-            "full_marks": full_marks,
-            "obtained_marks": subject_marks,
-            "percentage": round((subject_marks / full_marks) * 100, 2),
-            "grade": None 
-        }
+#         row = {
+#             "subject_name": subject_name,
+#             "full_marks": full_marks,
+#             "obtained_marks": subject_marks,
+#             "percentage": round((subject_marks / full_marks) * 100, 2),
+#             "grade": None 
+#         }
 
-        result_data["marks"].append(row)
-        total_marks += full_marks
-        total_obtained_marks += subject_marks
+#         result_data["marks"].append(row)
+#         total_marks += full_marks
+#         total_obtained_marks += subject_marks
 
-    overall_percentage = round((total_obtained_marks / total_marks) * 100, 2)
+#     overall_percentage = round((total_obtained_marks / total_marks) * 100, 2)
 
-    for row in result_data["marks"]:
-        row["grade"] =get_grade(db=db, percentage=row["percentage"], class_id=class_id)
+#     for row in result_data["marks"]:
+#         row["grade"] =get_grade(db=db, percentage=row["percentage"], class_id=class_id)
 
-    result_data["total_marks"] = total_marks
-    result_data["total_obtained_marks"] = total_obtained_marks
-    result_data["percentage"] = overall_percentage
-    result_data["grade"] = get_grade(db=db, percentage=overall_percentage, class_id=class_id)
+#     result_data["total_marks"] = total_marks
+#     result_data["total_obtained_marks"] = total_obtained_marks
+#     result_data["percentage"] = overall_percentage
+#     result_data["grade"] = get_grade(db=db, percentage=overall_percentage, class_id=class_id)
 
-    return result_data
+#     return result_data
 

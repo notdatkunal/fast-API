@@ -88,15 +88,17 @@ async def activate_education_year(education_year_id:int,db:db_dependency,current
 
 # delete education year by id
 @router.delete("/delete_education_year/")
-async def delete_education_year(education_year_id:int,db:db_dependency,current_user: str = Depends(is_authenticated)):
+async def delete_education_year(education_year_id: int, db: db_dependency, current_user: str = Depends(is_authenticated)):
     education_year_instance = db.query(EducationYear).filter(EducationYear.education_year_id == education_year_id).first()
     if education_year_instance is None:
         raise HTTPException(status_code=404, detail="Education Year not found")
     try:
         db.delete(education_year_instance)
         db.commit()
-        return succes_response(msg="Education Year Deleted Successfully")
+        return succes_response(data="",msg="Education Year Deleted Successfully")
     except Exception as e:
-        raise HTTPException(status_code=404, detail=f"No ID Found")
+        print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
 
 

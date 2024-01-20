@@ -150,3 +150,24 @@ async def delete_grade(grade_id:int,db:Session = Depends(get_db),current_user: s
     db.commit()
     return succes_response(jsonable_encoder(grade),msg="Grade Deleted Successfully")
 
+from sqlalchemy.orm import aliased
+
+@router.get("/get_grade_for_exam/")
+async def get_grade_for_exam(class_id: int, db: db_dependency, current_user: str = Depends(is_authenticated)):
+    class_data = db.query(Classes).filter(Classes.class_id == class_id).first()
+
+    if class_data is None:
+        raise HTTPException(status_code=404, detail="Class not Found.")
+
+    subquery = (
+        db.query(Grades.grade_name, Grades.percent_from, Grades.percent_upto)
+        .join(grades_classes_association)
+        .filter(grades_classes_association.c.class_id == class_id)
+        .all()
+    )
+
+    payload = {i[0]:{"lower_limit":i[1],"upper_limit":i[2]}  for i in subquery}
+    return jsonable_encoder(payload)
+
+
+
