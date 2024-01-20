@@ -2,11 +2,11 @@ trigger:
 - develop
 
 variables:
-  azureServiceConnection: 'AlongX-Azure-Account-Development'
-  webAppName: 'gsm-fastapi'
-  resourceGroupName: 'Development'
+  azureServiceConnection: 'gurukul-prod-si-azureconnection'
+  webAppName: 'gurukul-api-prod-si-as'
+  resourceGroupName: 'gurukul-prod-si-rg'
   vmImageName: 'ubuntu-latest'
-  environmentName: 'gsm-fastapi'
+  environmentName: 'gurukul-api-prod-si-as'
   projectRoot: $(System.DefaultWorkingDirectory)
   pythonVersion: '3.12'
   isDev: $[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]
