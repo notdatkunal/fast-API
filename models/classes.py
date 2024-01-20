@@ -16,8 +16,7 @@ class Classes(BASE):
     calender = relationship("Calender", back_populates="classes")
     fees = relationship('Fees', back_populates='class_fees')
     grades = relationship("Grades", secondary="grades_classes_association", back_populates="grades")
-
-
+    
 class Sections(BASE):
     __tablename__ = "tbl_sections"
     section_id = Column(Integer,primary_key=True,autoincrement=True)

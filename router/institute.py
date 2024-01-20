@@ -13,18 +13,18 @@ class InstituteBase(BaseModel):
     id: int
     subscribers_id: int
     institute_name: str
-    institute_address: str = None
-    institute_city: str = None
-    institute_state: str = None
-    institute_country: str = None
-    institute_pincode: str = None
+    institute_address: str = Field("")
+    institute_city: str = Field("")
+    institute_state: str = Field("")
+    institute_country: str = Field("")
+    institute_pincode: str = Field("")
     institute_phone: str
     institute_email: str
-    institute_logo: str = None
-    institute_fav_icon: str = None
-    institute_tag_line: str = None
-    institute_website: str = None
-    point_of_contact: str = None
+    institute_logo: str = Field("")
+    institute_fav_icon: str = Field("")
+    institute_tag_line: str = Field("")
+    institute_website: str = Field("")
+    point_of_contact: str = Field("")
     date_of_registration: date = Field(default_factory=date.today)
     is_deleted: bool = False
 
