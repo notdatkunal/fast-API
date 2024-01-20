@@ -51,7 +51,6 @@ def get_student_attendance_by_filter(db=None,filter_column:str=None,filter_value
             .join(Student, StudentAttendance.student_id == Student.student_id)
             .options(
                 joinedload(StudentAttendance.student).load_only(Student.student_name, Student.roll_number),
-                joinedload(Student.classes).load_only(Classes.class_name),
             )
             .filter(getattr(StudentAttendance, filter_column) == filter_value, StudentAttendance.is_deleted == False)
             .order_by(StudentAttendance.attendance_date.desc())
